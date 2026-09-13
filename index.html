@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Report & Work Order System - Power Support Co.</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%231e4268'/%3E%3Ctext x='50' y='70' font-size='62' text-anchor='middle' fill='white' font-family='Arial'%3E%F0%9F%94%A7%3C/text%3E%3C/svg%3E">
+    <style>
+        :root {
+            --primary-color: #1e4268;
+            --primary-hover: #132b45;
+            --accent-blue: #2b5c8f;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --border-color: #cbd5e1;
+            --text-color: #1f2937;
+            --section-bg: #e2e8f0;
+            --danger-color: #dc2626;
+            --success-color: #16a34a;
+            --warning-color: #d97706;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px 15px; direction: ltr; }
+
+        input, select, textarea {
+            font-family: Arial, Helvetica, sans-serif !important;
+            font-variant-numeric: lining-nums !important;
+        }
+
+        .lang-switch-container {
+            max-width: 1050px;
+            margin: 0 auto 15px auto;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .lang-btn {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 9px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-top: 8px solid var(--primary-color);
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            gap: 20px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .brand-logo { max-height: 100px; width: auto; object-fit: contain; }
+
+        .header-title {
+            flex: 1;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            text-align: center;
+            padding: 16px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            border-radius: 8px;
+        }
+
+        .workflow-tabs { display: flex; gap: 10px; margin-bottom: 25px; pointer-events: none; }
+
+        .tab-btn {
+            flex: 1; padding: 14px; background-color: var(--section-bg); color: #64748b;
+            border: none; font-size: 0.95rem; font-weight: bold; border-radius: 8px; text-align: center; transition: 0.3s;
+        }
+
+        .tab-btn.active { background-color: var(--primary-color); color: #ffffff; }
+
+        .grid-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px; margin-bottom: 20px;
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: var(--primary-color); }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; background: #fff;
+        }
+
+        .form-group input[readonly] { background-color: #f1f5f9; cursor: not-allowed; }
+
+        .section-header {
+            background-color: var(--section-bg); color: var(--primary-color); padding: 10px 15px;
+            font-weight: bold; font-size: 1.05rem; border-radius: 6px; margin-bottom: 15px;
+            border-inline-start: 5px solid var(--primary-color);
+        }
+
+        .sla-card {
+            background: #f8fafc; border: 2px dashed var(--accent-blue); padding: 15px; border-radius: 8px;
+            margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; text-align: center;
+        }
+
+        .sla-box { background: #fff; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); }
+        .sla-box span { display: block; font-size: 1.1rem; font-weight: bold; margin-top: 5px; color: var(--primary-color); }
+
+        table.inspection-table {
+            width: 100%; border-collapse: collapse; margin-bottom: 25px; background: #fff;
+        }
+        table.inspection-table th {
+            background-color: #1e4268; color: #ffffff; padding: 12px; font-weight: bold; font-size: 0.9rem;
+            border: 1px solid #132b45; text-align: start;
+        }
+        table.inspection-table td {
+            border: 1px solid var(--border-color); padding: 10px; font-size: 0.88rem; vertical-align: middle;
+        }
+        
+        .qty-input-box {
+            width: 60px; padding: 5px; border: 1px solid var(--border-color); border-radius: 4px;
+            text-align: center; font-size: 0.9rem; font-weight: bold;
+        }
+
+        .exam-badge {
+            display: inline-block; background: #e0f2fe; color: #0369a1; padding: 3px 8px;
+            border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-bottom: 4px;
+        }
+
+        .status-radio-group {
+            display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 4px;
+        }
+        .status-radio-group label {
+            display: flex; align-items: center; gap: 4px; font-weight: 500; cursor: pointer; font-size: 0.85rem;
+        }
+
+        .action-select-box {
+            padding: 5px; border: 1px solid var(--danger-color); border-radius: 4px;
+            background: #fef2f2; color: #b91c1c; font-size: 0.82rem; font-weight: bold; display: none; width: 100%; margin-top: 4px;
+        }
+
+        .notes-area textarea {
+            width: 100%; height: 110px; padding: 12px; border: 1px solid var(--border-color);
+            border-radius: 6px; resize: vertical; font-size: 0.95rem; margin-bottom: 20px;
+        }
+
+        .attachments-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px;
+        }
+
+        .upload-box {
+            border: 2px dashed var(--border-color); padding: 15px; text-align: center; border-radius: 8px; background: #fafafa;
+        }
+        .upload-box input { display: none; }
+        .upload-btn {
+            display: inline-block; padding: 8px 12px; background: var(--section-bg); color: var(--primary-color);
+            font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin-top: 8px;
+        }
+        .img-preview { max-width: 100%; max-height: 100px; margin-top: 8px; border-radius: 6px; display: none; object-fit: cover; }
+
+        .btn-action {
+            padding: 16px 40px; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 8px;
+            cursor: pointer; color: white; background-color: var(--primary-color); width: 100%; transition: 0.2s;
+        }
+        .btn-action:hover { background-color: var(--primary-hover); }
+
+        .btn-convert {
+            background-color: var(--warning-color); color: white; padding: 15px 20px; border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer; margin-top: 15px; margin-bottom: 15px; font-size: 1.05rem; width: 100%; transition: 0.2s;
+        }
+        .btn-convert:hover { background-color: #b45309; }
+
+        .no-data {
+            text-align: center; padding: 35px; color: #64748b; background: #f8fafc;
+            border: 1px dashed var(--border-color); border-radius: 6px;
+        }
+
+        #statusMessage { display: none; padding: 14px; margin-top: 15px; border-radius: 6px; text-align: center; font-weight: bold; line-height: 1.6; }
+        .status-success { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .status-loading { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+        .status-error   { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+        #statusMessage a { color: inherit; font-weight: bold; text-decoration: underline; }
+        .status-detail { font-weight: normal; font-size: 0.88rem; margin-top: 6px; opacity: 0.9; }
+        .btn-new-report {
+            margin-top: 12px; padding: 10px 22px; background: var(--primary-color); color: #fff;
+            border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.95rem;
+        }
+
+        .btn-action:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="lang-switch-container">
+    <button type="button" class="lang-btn" onclick="toggleLanguage()">
+        🌐 <span id="langBtnText">عربي</span>
+    </button>
+</div>
+
+<div class="container">
+    <div class="brand-header">
+        <img alt="Power Support Co." class="brand-logo" style="display:none"
+             onload="this.style.display=''" onerror="this.remove()">
+        <div class="header-title" id="t_header_title">Incident Report & Work Order Lifecycle System</div>
+    </div>
+
+    <!-- WORKFLOW STAGE TABS -->
+    <div class="workflow-tabs">
+        <div class="tab-btn active" id="tab1">1. Incident Reporting (تسجيل البلاغ)</div>
+        <div class="tab-btn" id="tab2">2. Work Order Execution (أمر العمل والإنهاء)</div>
+    </div>
+
+    <!-- novalidate مقصود: حقول المرحلة الأولى تُخفى بعد التحويل لأمر عمل،
+         وتحقق المتصفح يرفض التركيز على حقل مخفي فيحبس الإرسال بصمت بلا أي
+         رسالة للمستخدم. التحقق يتم في convertToWorkOrder() بالعربية، ثم
+         يتحقق الخادم مرة أخرى كشبكة أمان. -->
+    <form id="lifecycleForm" novalidate>
+        <!-- STAGE 1: INCIDENT REPORT -->
+        <div id="stage1_content">
+            <div class="section-header" id="t_sec_inc">🚨 Incident Information & Timestamps</div>
+            
+            <div class="grid-section">
+                <div class="form-group"><label id="t_inc_no">Incident Ref No.</label><input type="text" id="incident_no" readonly></div>
+                <div class="form-group"><label id="t_rep_date">Reporting Date (Auto)</label><input type="text" id="reporting_date" readonly></div>
+                <div class="form-group"><label id="t_rep_time">Reporting Time (Auto)</label><input type="text" id="reporting_time" readonly></div>
+                <div class="form-group"><label id="t_recipient">Recipient of the Report</label><input type="text" id="recipient_name" required></div>
+            </div>
+
+            <div class="grid-section">
+                <div class="form-group"><label id="t_cname">Client Name</label><input type="text" id="client_name" required></div>
+                <div class="form-group"><label id="t_ccontact">Contact Number</label><input type="text" id="client_contact"></div>
+                <div class="form-group"><label id="t_cemail">Client E-mail</label><input type="email" id="client_email"></div>
+                <div class="form-group"><label id="t_loc">Location</label><input type="text" id="location" required></div>
+                <div class="form-group"><label id="t_fac">Facility / Floor</label><input type="text" id="facility"></div>
+            </div>
+
+            <div class="grid-section">
+                <div class="form-group" style="grid-column: span 2;"><label id="t_inc_text">Incident Text / Problem Description</label><textarea id="incident_text" rows="3" required placeholder="Describe problem details..."></textarea></div>
+                <div class="form-group">
+                    <label id="t_rep_cls">Report Classification (SLA)</label>
+                    <select id="report_classification" onchange="updateSLAInfo()" required>
+                        <option value="">-- Select Priority --</option>
+                        <option value="Emergency">Emergency (طارئ)</option>
+                        <option value="High">High (عالي)</option>
+                        <option value="Average">Average (متوسط)</option>
+                        <option value="Low">Low (منخفض)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="t_rep_repeat">Incident Repeated?</label>
+                    <select id="incident_repeated">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Service -> System Hierarchy -->
+            <div class="section-header" id="t_sec_hierarchy">🌐 Work / Service & System Hierarchy</div>
+            <div class="grid-section">
+                <div class="form-group">
+                    <label id="t_service">Work / Service</label>
+                    <select id="service_select" onchange="onServiceChange()" required>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="t_system">System</label>
+                    <select id="system_select" onchange="onSystemChange()" required>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sla-card">
+                <div class="sla-box"><span id="t_sla_resp_lbl">Max Response Time</span><span id="sla_response">-</span></div>
+                <div class="sla-box"><span id="t_sla_proc_lbl">Max Processing Time</span><span id="sla_processing">-</span></div>
+                <div class="sla-box"><span id="t_sla_comp_lbl">Target Completion Time</span><span id="sla_completion">-</span></div>
+            </div>
+
+            <button type="button" class="btn-convert" id="btn_convert_wo" onclick="convertToWorkOrder()">⚡ Convert to Work Order Now (تحويل البلاغ إلى أمر عمل)</button>
+        </div>
+
+        <!-- STAGE 2: WORK ORDER EXECUTION -->
+        <div id="stage2_content" style="display: none;">
+            <div class="section-header" id="t_sec_timers">⏱️ Live SLA Countdown Timers</div>
+            <div class="sla-card">
+                <div class="sla-box"><span id="t_lbl_resp_timer">Response Timer Remaining</span><span id="timer_response" style="color:var(--danger-color)">--:--</span></div>
+                <div class="sla-box"><span id="t_lbl_comp_timer">Target Completion Remaining</span><span id="timer_completion" style="color:var(--warning-color)">--:--</span></div>
+                <div class="sla-box"><span id="t_lbl_status">Work Order Status</span><span id="display_assigned" style="color:var(--success-color)">In Progress</span></div>
+            </div>
+
+            <div class="section-header" id="t_sec_emp">👷 Employee Assignment & Receipt</div>
+            <div class="grid-section">
+                <div class="form-group"><label id="t_emp_name">Employee Name</label><input type="text" id="employee_name"></div>
+                <div class="form-group"><label id="t_mtype">Maintenance Type</label><input type="text" id="maintenance_type"></div>
+                <div class="form-group"><label id="t_receipt_time">Receipt Time (System Auto)</label><input type="text" id="receipt_timestamp" readonly></div>
+            </div>
+
+            <!-- DETAILED EQUIPMENT EXAMINATIONS CHECKLIST MATRIX -->
+            <div class="section-header" id="t_eq_header">Equipment Detailed Examination Matrix</div>
+            <div id="equipmentContainer">
+                <div class="no-data" id="t_nodata">Please select Service & System above to load equipment checklist.</div>
+            </div>
+
+            <div class="section-header" id="t_sec_notes">📝 General Notes & Remarks</div>
+            <div class="notes-area">
+                <textarea id="generalNotes" placeholder="Enter general inspection notes here..."></textarea>
+            </div>
+
+            <div class="section-header" id="t_sec_photos">📷 Inspection Attachments & Photos</div>
+            <div class="attachments-grid">
+                <div class="upload-box">
+                    <div id="t_att_before">Before Examination</div>
+                    <label class="upload-btn"><span class="btn_file_txt">Choose Photo</span><input type="file" accept="image/*" onchange="compressPhoto(this, 'prev_before')"></label>
+                    <img id="prev_before" class="img-preview" data-base64="">
+                </div>
+                <div class="upload-box">
+                    <div id="t_att_during">During Examination</div>
+                    <label class="upload-btn"><span class="btn_file_txt">Choose Photo</span><input type="file" accept="image/*" onchange="compressPhoto(this, 'prev_during')"></label>
+                    <img id="prev_during" class="img-preview" data-base64="">
+                </div>
+                <div class="upload-box">
+                    <div id="t_att_after">After Examination</div>
+                    <label class="upload-btn"><span class="btn_file_txt">Choose Photo</span><input type="file" accept="image/*" onchange="compressPhoto(this, 'prev_after')"></label>
+                    <img id="prev_after" class="img-preview" data-base64="">
+                </div>
+            </div>
+
+            <div class="grid-section" style="border-top: 2px solid var(--border-color); padding-top: 20px;">
+                <div class="form-group">
+                    <label id="t_sig">Employee Digital Signature</label>
+                    <input type="text" id="signature" placeholder="Type name for digital signature">
+                </div>
+            </div>
+
+            <div style="margin-top: 25px;">
+                <button type="submit" class="btn-action" id="btn_submit">Submit Work Order & Complete Lifecycle (حفظ وإرسال أمر العمل)</button>
+            </div>
+        </div>
+
+        <div id="statusMessage"></div>
+    </form>
+</div>
+
+<script>
+    // ⬇️ الصق هنا رابط النشر (/exec) من Apps Script — الخطوة 7 في SETUP.md
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhHOt5zowhjZelskOOfpnJnJgsi0vU9xh1Gpyt5lEuW1U9-5njg27hn1vClKZ7c5xb/exec";
+
+    // جودة ضغط الصور قبل الرفع (انظر SETUP.md لو احتجت تخفيفها لشبكة ضعيفة)
+    const PHOTO_MAX_WIDTH = 1280;
+    const PHOTO_QUALITY   = 0.75;
+
+    let currentLang = 'en';
+
+    const translations = {
+        ar: {
+            langBtn: "English", dir: "rtl",
+            headerTitle: "نظام إدارة البلاغات وأوامر العمل (Incident & Work Order Lifecycle)",
+            tab1: "1. تسجيل البلاغ (Incident Reporting)", tab2: "2. تنفيذ أمر العمل والإنهاء (Work Order Execution)",
+            secInc: "🚨 معلومات البلاغ والتاريخ الآلي", incNo: "رقم مرجع البلاغ", repDate: "تاريخ البلاغ (آلي)", repTime: "وقت البلاغ (آلي)",
+            recipient: "اسم مستلم البلاغ", cname: "اسم العميل", ccontact: "رقم التواصل", cemail: "البريد الإلكتروني",
+            loc: "الموقع", fac: "المنشأة / الطابق", incText: "وصف البلاغ / المشكلة", repCls: "تصنيف البلاغ (SLA)", repRepeat: "هل سبق تكرار البلاغ؟",
+            secHierarchy: "🌐 هيكلية الخدمات والأنظمة", service: "الخدمة الرئيسية", system: "النظام", eqHeader: "Equipment Detailed Examination Matrix (مصفوفة الفحوصات التفصيلية للمعدات)",
+            noData: "يرجى اختيار الخدمة والنظام من الأعلى لعرض قائمة فحص المعدات.",
+            slaResp: "أقصى وقت للاستجابة", slaProc: "أقصى وقت للمعالجة", slaComp: "الوقت المستهدف للإنجاز",
+            btnConvert: "⚡ تحويل البلاغ إلى أمر عمل الآن",
+            secTimers: "⏱️ عداد الوقت التنازلي لاتفاقية الخدمة (SLA Countdown)", secEmp: "👷 تكليف الموظف ووقت الاستلام",
+            lblRespTimer: "وقت الاستجابة المتبقي", lblCompTimer: "وقت الإنجاز المتبقي", lblStatus: "حالة أمر العمل",
+            empName: "اسم الفني / الموظف", mtype: "نوع الصيانة", receiptTime: "وقت استلام أمر العمل (آلي)",
+            secNotes: "📝 الملاحظات العامة والتعليمات", secPhotos: "📷 مرفقات الفحص والصور", attBefore: "قبل العمل", attDuring: "أثناء العمل", attAfter: "بعد الانتهاء",
+            sig: "التوقيع الرقمي للموظف", btnSubmit: "حفظ وإرسال أمر العمل النهائي", btnFile: "اختر صورة",
+            phNotes: "أدخل الملاحظات العامة والتعليمات هنا...", phIncText: "أدخل تفاصيل المشكلة والبلاغ هنا...",
+            colNo: "No.", colEq: "Equipment / Component", colQty: "Qty", colExams: "Required Examinations & Status",
+            stPass: "سليم (Pass)", stFail: "مشكلة (Fail)",
+            msgSending: "جاري رفع الصور وحفظ البلاغ... قد يستغرق دقيقة، لا تغلق الصفحة.",
+            msgRetrying: "الخادم لم يستجب — إعادة المحاولة تلقائياً", msgSuccess: "✅ تم حفظ أمر العمل بنجاح!",
+            msgDuplicate: "✅ هذا البلاغ محفوظ مسبقاً — لم يتم تكراره.",
+            msgError: "❌ فشل حفظ البلاغ",
+            msgNetworkError: "❌ تعذّر الاتصال بالخادم",
+            msgNetworkHint: "تحقق من اتصال الإنترنت ثم اضغط زر الإرسال مرة أخرى.",
+            msgDataKept: "بياناتك وصورك ما زالت موجودة في النموذج — لم يضع شيء.",
+            msgNotConfigured: "لم يتم ضبط رابط الخادم بعد. راجع ملف SETUP.md.",
+            btnSubmitting: "⏳ جاري رفع الصور والحفظ...",
+            linkFolder: "📁 فتح مجلد الصور",
+            lblIncidentNo: "رقم البلاغ",
+            lblInspections: "عدد الفحوصات المحفوظة",
+            btnNewReport: "➕ تسجيل بلاغ جديد"
+        },
+        en: {
+            langBtn: "عربي", dir: "ltr",
+            headerTitle: "Incident Report & Work Order Lifecycle System",
+            tab1: "1. Incident Reporting", tab2: "2. Work Order Execution",
+            secInc: "🚨 Incident Information & Timestamps", incNo: "Incident Ref No.", repDate: "Reporting Date (Auto)", repTime: "Reporting Time (Auto)",
+            recipient: "Recipient of the Report", cname: "Client Name", ccontact: "Contact Number", cemail: "Client E-mail",
+            loc: "Location", fac: "Facility / Floor", incText: "Incident Description", repCls: "Report Classification (SLA)", repRepeat: "Incident Repeated?",
+            secHierarchy: "🌐 Work / Service & System Hierarchy", service: "Work / Service", system: "System", eqHeader: "Equipment Detailed Examination Matrix",
+            noData: "Please select Service & System above to load equipment checklist.",
+            slaResp: "Max Response Time", slaProc: "Max Processing Time", slaComp: "Target Completion Time",
+            btnConvert: "⚡ Convert to Work Order Now",
+            secTimers: "⏱️ Live SLA Countdown Timers", secEmp: "👷 Employee Assignment & Receipt",
+            lblRespTimer: "Response Timer Remaining", lblCompTimer: "Target Completion Remaining", lblStatus: "Work Order Status",
+            empName: "Employee / Technician Name", mtype: "Maintenance Type", receiptTime: "Receipt Time (Auto)",
+            secNotes: "📝 General Notes & Remarks", secPhotos: "📷 Inspection Attachments & Photos", attBefore: "Before Examination", attDuring: "During Examination", attAfter: "After Examination",
+            sig: "Employee Digital Signature", btnSubmit: "Submit Work Order & Complete Lifecycle", btnFile: "Choose Photo",
+            phNotes: "Enter general inspection notes here...", phIncText: "Describe problem details...",
+            colNo: "No.", colEq: "Equipment / Component", colQty: "Qty", colExams: "Required Examinations & Status",
+            stPass: "Pass", stFail: "Fail",
+            msgSending: "Uploading photos & saving work order... this can take a minute, keep the page open.",
+            msgRetrying: "Server did not respond — retrying automatically", msgSuccess: "✅ Work order saved successfully!",
+            msgDuplicate: "✅ This report was already saved — no duplicate was created.",
+            msgError: "❌ Failed to save the work order",
+            msgNetworkError: "❌ Could not reach the server",
+            msgNetworkHint: "Check your internet connection, then press Submit again.",
+            msgDataKept: "Your data and photos are still in the form — nothing was lost.",
+            msgNotConfigured: "Server URL is not configured yet. See SETUP.md.",
+            btnSubmitting: "⏳ Uploading photos & saving...",
+            linkFolder: "📁 Open photos folder",
+            lblIncidentNo: "Incident No",
+            lblInspections: "Inspections saved",
+            btnNewReport: "➕ New Report"
+        }
+    };
+
+    const slaRules = {
+        "Emergency": { response: 15, processing: 0, completion: 120 },
+        "High": { response: 30, processing: 60, completion: 480 },
+        "Average": { response: 120, processing: 240, completion: 1440 },
+        "Low": { response: 1440, processing: 1440, completion: 4320 }
+    };
+
+    // FULL HIERARCHY WITH ALL 5 SERVICES & DETAILED EXAMINATIONS
+    const hierarchyData = {
+        "HVAC": {
+            "Central AC": [
+                { id: 1, name: { ar: "AHU - وحدة معالجة الهواء", en: "AHU" }, exams: ["Cleanliness", "Airflow", "Cooling Coils", "Vibration", "Noise", "Electrical"] },
+                { id: 2, name: { ar: "FCU - وحدة ملف المروحة", en: "FCU" }, exams: ["Air Filters", "Thermostat", "Cooling Performance", "Noise"] },
+                { id: 3, name: { ar: "Compressors - الضواغط", en: "Compressors" }, exams: ["Oil Level", "Refrigerant Pressure", "Vibration", "Electrical Current"] }
+            ],
+            "Package Units": [
+                { id: 4, name: { ar: "Package Units - الوحدات المدمجة", en: "Package Units" }, exams: ["Condenser Fans", "Air Filters", "Thermostats", "Refrigerant Leak"] }
+            ]
+        },
+        "Plumbing": {
+            "Water Supply": [
+                { id: 1, name: { ar: "Water Tanks - خزانات المياه", en: "Water Tanks" }, exams: ["Cleanliness", "Water Level", "Tank Float Valve", "Structure Integrity"] },
+                { id: 2, name: { ar: "Pumps - المضخات", en: "Pumps" }, exams: ["Pressure", "Vibration", "Noise", "Leakage", "Electrical Panel"] },
+                { id: 3, name: { ar: "Water Networks & Valves - الشبكات والمحابس", en: "Water Networks & Valves" }, exams: ["Pressure Regulators", "Check Valves", "Water Meters", "Leakage"] }
+            ],
+            "Drainage": [
+                { id: 4, name: { ar: "Grease Traps & Drains - مصايد الدهون والصفايات", en: "Grease Traps & Drains" }, exams: ["Cleanliness", "Flow Rate", "Blockage Check"] }
+            ]
+        },
+        "Civil": {
+            "Architectural": [
+                { id: 1, name: { ar: "Wooden Doors & Locks - الأبواب والأقفال", en: "Wooden Doors & Locks" }, exams: ["Alignment", "Lock Mechanism", "Hinges Condition"] },
+                { id: 2, name: { ar: "Tiles & Flooring - البلاط والأرضيات", en: "Tiles & Flooring" }, exams: ["Surface Integrity", "Grout Condition", "Cleanliness"] }
+            ]
+        },
+        "Hospitality": {
+            "Beverage Setup": [
+                { id: 1, name: { ar: "Coffee & Tea Stations - محطات القهوة والشاي", en: "Coffee & Tea Stations" }, exams: ["Cleanliness", "Water Pressure", "Equipment Operation"] }
+            ]
+        },
+        "Cleaning": {
+            "Routine Cleaning": [
+                { id: 1, name: { ar: "Floor & Restroom Facilities - الأرضيات والخدمات", en: "Floor & Restroom Facilities" }, exams: ["Sanitization", "Cleanliness", "Supply Stock"] }
+            ]
+        }
+    };
+
+    let responseCountdownTimer, completionCountdownTimer;
+
+    // الشعار اختياري — نتحقق من وجوده قبل الطلب فلا يتلوث الكونسول بـ 404
+    (function loadLogoIfPresent() {
+        fetch("logo.jpg", { method: "HEAD" })
+            .then(r => { if (r.ok) document.querySelector(".brand-logo").src = "logo.jpg"; })
+            .catch(() => {});
+    })();
+
+    window.onload = function() {
+        const now = new Date();
+        document.getElementById("incident_no").value = "REP-" + now.toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById("reporting_date").value = now.toLocaleDateString('en-GB');
+        document.getElementById("reporting_time").value = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+        populateServiceDropdown();
+    };
+
+    function populateServiceDropdown() {
+        const sSelect = document.getElementById("service_select");
+        sSelect.innerHTML = `<option value="">${currentLang === 'ar' ? '-- اختر الخدمة الرئيسية --' : '-- Select Service --'}</option>`;
+        
+        const services = [
+            { key: "HVAC", ar: "1. التكييف والتهوية والتبريد (HVAC)", en: "1. Air Conditioning, Refrigeration" },
+            { key: "Plumbing", ar: "2. أنظمة السباكة والصرف (Plumbing)", en: "2. Plumbing and Drainage Systems" },
+            { key: "Civil", ar: "3. الأعمال المدنية والمعمارية والنجارة", en: "3. Civil, Architectural, and Carpentry" },
+            { key: "Hospitality", ar: "4. خدمات الضيافة (Hospitality)", en: "4. Hospitality Services" },
+            { key: "Cleaning", ar: "5. عمليات النظافة (Cleaning)", en: "5. Cleaning Operations" }
+        ];
+
+        services.forEach(s => {
+            const opt = document.createElement("option");
+            opt.value = s.key;
+            opt.textContent = currentLang === 'ar' ? s.ar : s.en;
+            sSelect.appendChild(opt);
+        });
+    }
+
+    function toggleLanguage() {
+        currentLang = currentLang === 'ar' ? 'en' : 'ar';
+        const t = translations[currentLang];
+
+        document.documentElement.dir = t.dir;
+        document.body.style.direction = t.dir;
+
+        document.getElementById("langBtnText").textContent = t.langBtn;
+        document.getElementById("t_header_title").textContent = t.headerTitle;
+        document.getElementById("tab1").textContent = t.tab1;
+        document.getElementById("tab2").textContent = t.tab2;
+        document.getElementById("t_sec_inc").textContent = t.secInc;
+        document.getElementById("t_inc_no").textContent = t.incNo;
+        document.getElementById("t_rep_date").textContent = t.repDate;
+        document.getElementById("t_rep_time").textContent = t.repTime;
+        document.getElementById("t_recipient").textContent = t.recipient;
+        document.getElementById("t_cname").textContent = t.cname;
+        document.getElementById("t_ccontact").textContent = t.ccontact;
+        document.getElementById("t_cemail").textContent = t.cemail;
+        document.getElementById("t_loc").textContent = t.loc;
+        document.getElementById("t_fac").textContent = t.fac;
+        document.getElementById("t_inc_text").textContent = t.incText;
+        document.getElementById("t_rep_cls").textContent = t.repCls;
+        document.getElementById("t_rep_repeat").textContent = t.repRepeat;
+        document.getElementById("t_sec_hierarchy").textContent = t.secHierarchy;
+        document.getElementById("t_service").textContent = t.service;
+        document.getElementById("t_system").textContent = t.system;
+        document.getElementById("t_eq_header").textContent = t.eqHeader;
+        document.getElementById("t_sla_resp_lbl").textContent = t.slaResp;
+        document.getElementById("t_sla_proc_lbl").textContent = t.slaProc;
+        document.getElementById("t_sla_comp_lbl").textContent = t.slaComp;
+        document.getElementById("btn_convert_wo").textContent = t.btnConvert;
+        document.getElementById("t_sec_timers").textContent = t.secTimers;
+        document.getElementById("t_lbl_resp_timer").textContent = t.lblRespTimer;
+        document.getElementById("t_lbl_comp_timer").textContent = t.lblCompTimer;
+        document.getElementById("t_lbl_status").textContent = t.lblStatus;
+        document.getElementById("t_sec_emp").textContent = t.secEmp;
+        document.getElementById("t_emp_name").textContent = t.empName;
+        document.getElementById("t_mtype").textContent = t.mtype;
+        document.getElementById("t_receipt_time").textContent = t.receiptTime;
+        document.getElementById("t_sec_notes").textContent = t.secNotes;
+        document.getElementById("t_sec_photos").textContent = t.secPhotos;
+        document.getElementById("t_att_before").textContent = t.attBefore;
+        document.getElementById("t_att_during").textContent = t.attDuring;
+        document.getElementById("t_att_after").textContent = t.attAfter;
+        document.getElementById("t_sig").textContent = t.sig;
+        document.getElementById("btn_submit").textContent = t.btnSubmit;
+
+        populateServiceDropdown();
+        onServiceChange();
+    }
+
+    function updateSLAInfo() {
+        const cls = document.getElementById("report_classification").value;
+        if (slaRules[cls]) {
+            document.getElementById("sla_response").textContent = slaRules[cls].response + " mins";
+            document.getElementById("sla_processing").textContent = slaRules[cls].processing ? slaRules[cls].processing + " mins" : "Immediate";
+            document.getElementById("sla_completion").textContent = slaRules[cls].completion + " mins";
+        }
+    }
+
+    function onServiceChange() {
+        const service = document.getElementById("service_select").value;
+        const systemSelect = document.getElementById("system_select");
+        systemSelect.innerHTML = `<option value="">${currentLang === 'ar' ? '-- اختر النظام أولاً --' : '-- Select System First --'}</option>`;
+
+        if (service && hierarchyData[service]) {
+            Object.keys(hierarchyData[service]).forEach(sysKey => {
+                const opt = document.createElement("option");
+                opt.value = sysKey;
+                opt.textContent = sysKey;
+                systemSelect.appendChild(opt);
+            });
+        }
+        renderEquipmentTable();
+    }
+
+    function onSystemChange() {
+        renderEquipmentTable();
+    }
+
+    function renderEquipmentTable() {
+        const service = document.getElementById("service_select").value;
+        const system = document.getElementById("system_select").value;
+        const container = document.getElementById("equipmentContainer");
+        const t = translations[currentLang];
+
+        if (!service || !system || !hierarchyData[service] || !hierarchyData[service][system]) {
+            container.innerHTML = `<div class="no-data">${t.noData}</div>`;
+            return;
+        }
+
+        const items = hierarchyData[service][system];
+        let tableHTML = `
+            <table class="inspection-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">${t.colNo}</th>
+                        <th style="width: 220px;">${t.colEq}</th>
+                        <th style="width: 70px; text-align: center;">${t.colQty}</th>
+                        <th>${t.colExams}</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        items.forEach((item) => {
+            const eqName = item.name[currentLang] || item.name['en'];
+            
+            let examsHTML = "";
+            item.exams.forEach((exam, index) => {
+                const examId = `${item.id}_exam_${index}`;
+                examsHTML += `
+                    <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1;">
+                        <span class="exam-badge">${exam}</span>
+                        <div class="status-radio-group">
+                            <label><input type="radio" name="st_${examId}" value="Pass" checked onchange="toggleActionBox('${examId}')"> ${t.stPass}</label>
+                            <label><input type="radio" name="st_${examId}" value="Fail" onchange="toggleActionBox('${examId}')"> ${t.stFail}</label>
+                        </div>
+                        <select id="act_${examId}" class="action-select-box">
+                            <option value="Temporary Correction">${currentLang === 'ar' ? 'إصلاح مؤقت (Temporary Correction)' : 'Temporary Correction'}</option>
+                            <option value="Repair">${currentLang === 'ar' ? 'إصلاح وصيانة (Repair)' : 'Repair'}</option>
+                            <option value="Replacement">${currentLang === 'ar' ? 'استبدال (Replacement)' : 'Replacement'}</option>
+                        </select>
+                    </div>
+                `;
+            });
+
+            tableHTML += `
+                <tr>
+                    <td>${item.id}</td>
+                    <td><strong class="eq-name-str" data-id="${item.id}">${eqName}</strong></td>
+                    <td style="text-align: center;">
+                        <input type="number" min="1" value="1" id="eq_qty_${item.id}" class="qty-input-box">
+                    </td>
+                    <td>${examsHTML}</td>
+                </tr>
+            `;
+        });
+
+        tableHTML += `</tbody></table>`;
+        container.innerHTML = tableHTML;
+    }
+
+    function toggleActionBox(examId) {
+        const failRadio = document.querySelector(`input[name="st_${examId}"][value="Fail"]`);
+        const actionBox = document.getElementById(`act_${examId}`);
+        if (failRadio && actionBox) {
+            actionBox.style.display = failRadio.checked ? "block" : "none";
+        }
+    }
+
+    // كل حقل عليه required في المرحلة الأولى — لا بد من التحقق منه هنا، لأنه
+    // يصبح مخفياً بعد التحويل ولا يمكن للمتصفح عرض رسالة تحقق على حقل مخفي.
+    const STAGE1_REQUIRED = [
+        { id: "recipient_name",        ar: "اسم مستلم البلاغ", en: "Recipient of the Report" },
+        { id: "client_name",           ar: "اسم العميل",       en: "Client Name" },
+        { id: "location",              ar: "الموقع",           en: "Location" },
+        { id: "incident_text",         ar: "وصف البلاغ",       en: "Incident Description" },
+        { id: "report_classification", ar: "تصنيف البلاغ",     en: "Report Classification" },
+        { id: "service_select",        ar: "الخدمة الرئيسية",  en: "Work / Service" },
+        { id: "system_select",         ar: "النظام",           en: "System" }
+    ];
+
+    function convertToWorkOrder() {
+        const missing = STAGE1_REQUIRED.filter(f => {
+            const el = document.getElementById(f.id);
+            return !el || !el.value.trim();
+        });
+
+        if (missing.length) {
+            const names = missing.map(f => "• " + f[currentLang]).join("\n");
+            alert((currentLang === 'ar'
+                ? "يرجى تعبئة الحقول التالية قبل التحويل:\n\n"
+                : "Please fill the following fields before converting:\n\n") + names);
+            const first = document.getElementById(missing[0].id);
+            if (first) { first.focus(); first.scrollIntoView({ behavior: "smooth", block: "center" }); }
+            return;
+        }
+
+        const now = new Date();
+        document.getElementById("receipt_timestamp").value = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-US');
+        
+        document.getElementById("stage1_content").style.display = "none";
+        document.getElementById("stage2_content").style.display = "block";
+        document.getElementById("tab1").classList.remove("active");
+        document.getElementById("tab2").classList.add("active");
+
+        startSLATimers();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function startSLATimers() {
+        const cls = document.getElementById("report_classification").value;
+        if (!slaRules[cls]) return;
+        let resTimeSec = slaRules[cls].response * 60;
+        let compTimeSec = slaRules[cls].completion * 60;
+
+        clearInterval(responseCountdownTimer);
+        clearInterval(completionCountdownTimer);
+
+        responseCountdownTimer = setInterval(() => {
+            if (resTimeSec <= 0) {
+                clearInterval(responseCountdownTimer);
+                document.getElementById("timer_response").textContent = "EXPIRED";
+            } else {
+                resTimeSec--;
+                document.getElementById("timer_response").textContent = formatTime(resTimeSec);
+            }
+        }, 1000);
+
+        completionCountdownTimer = setInterval(() => {
+            if (compTimeSec <= 0) {
+                clearInterval(completionCountdownTimer);
+                document.getElementById("timer_completion").textContent = "EXPIRED";
+            } else {
+                compTimeSec--;
+                document.getElementById("timer_completion").textContent = formatTime(compTimeSec);
+            }
+        }, 1000);
+    }
+
+    function formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function compressPhoto(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > PHOTO_MAX_WIDTH) { h = Math.round((h * PHOTO_MAX_WIDTH) / w); w = PHOTO_MAX_WIDTH; }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    const base64 = canvas.toDataURL('image/jpeg', PHOTO_QUALITY);
+                    preview.src = base64;
+                    preview.setAttribute('data-base64', base64);
+                    preview.style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // جمع نتائج الفحص كصفوف منفصلة — صف لكل فحص، ليُكتب كل منها في سطر مستقل
+    // في شيت Inspections بدل ضغطها في خلية واحدة.
+    function collectInspectionRows() {
+        const service = document.getElementById("service_select").value;
+        const system = document.getElementById("system_select").value;
+        if (!service || !system || !hierarchyData[service] || !hierarchyData[service][system]) return [];
+
+        const rows = [];
+        hierarchyData[service][system].forEach((item) => {
+            const qtyEl = document.getElementById(`eq_qty_${item.id}`);
+            const qty = qtyEl ? qtyEl.value : "1";
+
+            item.exams.forEach((exam, index) => {
+                const examId = `${item.id}_exam_${index}`;
+                const statusRadio = document.querySelector(`input[name="st_${examId}"]:checked`);
+                const status = statusRadio ? statusRadio.value : "Pass";
+                const actionEl = document.getElementById(`act_${examId}`);
+
+                rows.push({
+                    // دائماً بالإنجليزية مهما كانت لغة الواجهة، حتى لا تنقسم
+                    // البيانات لمجموعتين حسب لغة من عبّأ النموذج
+                    equipment: item.name['en'],
+                    qty: qty,
+                    exam: exam,
+                    status: status,
+                    action: (status === "Fail" && actionEl) ? actionEl.value : ""
+                });
+            });
+        });
+        return rows;
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[c]);
+    }
+
+    // Apps Script يحوّل الرد إلى رابط نتيجة بمفتاح قصير العمر، وGoogle يفشل
+    // أحياناً في جلبه فيرجّع 404 أو صفحة HTML — عطل متقطّع من طرفه لا من الكود
+    // (قيس عملياً: يصيب نحو ثلث الطلبات، بلا علاقة ثابتة بمدة التنفيذ).
+    // إعادة المحاولة آمنة: الخادم يكشف التكرار برقم البلاغ فلا يُكتب صف مزدوج.
+    const SUBMIT_ATTEMPTS = 3;
+    const RETRY_DELAY_MS  = 2000;
+
+    async function submitWithRetry(payload) {
+        let lastError;
+
+        for (let attempt = 1; attempt <= SUBMIT_ATTEMPTS; attempt++) {
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error("HTTP " + res.status);
+
+                const text = await res.text();
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (parseErr) {
+                    throw new Error("رد غير مقروء من الخادم");
+                }
+
+                // رد doGet بدل نتيجة الإرسال = تُبع التحويل كـ GET، عطل نقل
+                if (result.service) throw new Error("رد ناقص من الخادم");
+
+                // خطأ تحقق حقيقي (حقل ناقص) — لا فائدة من إعادة المحاولة
+                return result;
+
+            } catch (err) {
+                lastError = err;
+                if (attempt < SUBMIT_ATTEMPTS) {
+                    showRetryNotice(attempt);
+                    await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+                }
+            }
+        }
+
+        throw lastError;
+    }
+
+    function showRetryNotice(attemptsDone) {
+        const t = translations[currentLang];
+        const statusDiv = document.getElementById("statusMessage");
+        statusDiv.className = "status-loading";
+        statusDiv.innerHTML =
+            `<div>${t.msgSending}</div>` +
+            `<div class="status-detail">${t.msgRetrying} (${attemptsDone + 1}/${SUBMIT_ATTEMPTS})</div>`;
+    }
+
+    // يعطّل زر الإرسال أثناء الرفع لمنع الإرسال المزدوج
+    function setSubmitting(isSubmitting) {
+        const btn = document.getElementById("btn_submit");
+        const t = translations[currentLang];
+        btn.disabled = isSubmitting;
+        btn.textContent = isSubmitting ? t.btnSubmitting : t.btnSubmit;
+    }
+
+    function onSubmitSuccess(result) {
+        const t = translations[currentLang];
+        const statusDiv = document.getElementById("statusMessage");
+
+        let html = `<div>${result.duplicate ? t.msgDuplicate : t.msgSuccess}</div>`;
+        html += `<div class="status-detail">${t.lblIncidentNo}: <strong>${escapeHtml(result.incident_no || "")}</strong></div>`;
+
+        if (typeof result.inspections_written === "number") {
+            html += `<div class="status-detail">${t.lblInspections}: <strong>${result.inspections_written}</strong></div>`;
+        }
+        if (result.folder_url) {
+            html += `<div style="margin-top:10px"><a href="${escapeHtml(result.folder_url)}" target="_blank" rel="noopener">${t.linkFolder}</a></div>`;
+        }
+        // لا إعادة تحميل تلقائية — تتيح للفنّي فتح مجلد الصور والتأكد قبل بدء بلاغ جديد
+        html += `<div><button type="button" class="btn-new-report" onclick="window.location.reload()">${t.btnNewReport}</button></div>`;
+
+        statusDiv.className = "status-success";
+        statusDiv.innerHTML = html;
+        statusDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function onSubmitFailure(err) {
+        const t = translations[currentLang];
+        const statusDiv = document.getElementById("statusMessage");
+
+        // فشل fetch نفسه (TypeError) يعني انقطاع شبكة أو حجب، لا خطأ من الخادم
+        const isNetwork = (err instanceof TypeError);
+
+        statusDiv.className = "status-error";
+        statusDiv.innerHTML =
+            `<div>${isNetwork ? t.msgNetworkError : t.msgError}</div>` +
+            `<div class="status-detail">${escapeHtml(err.message || err)}</div>` +
+            (isNetwork ? `<div class="status-detail">${t.msgNetworkHint}</div>` : ``) +
+            `<div class="status-detail"><strong>${t.msgDataKept}</strong></div>`;
+
+        setSubmitting(false);   // إعادة تفعيل الزر لإتاحة المحاولة مجدداً
+        statusDiv.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    document.getElementById("lifecycleForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const statusDiv = document.getElementById("statusMessage");
+        const t = translations[currentLang];
+
+        if (!SCRIPT_URL || SCRIPT_URL.indexOf("script.google.com") === -1) {
+            statusDiv.className = "status-error";
+            statusDiv.textContent = t.msgNotConfigured;
+            statusDiv.style.display = "block";
+            return;
+        }
+
+        statusDiv.className = "status-loading";
+        statusDiv.textContent = t.msgSending;
+        statusDiv.style.display = "block";
+        setSubmitting(true);
+
+        const classification = document.getElementById("report_classification").value;
+        const sla = slaRules[classification] || {};
+
+        const payload = {
+            incident_no: document.getElementById("incident_no").value,
+            reporting_date: document.getElementById("reporting_date").value,
+            reporting_time: document.getElementById("reporting_time").value,
+            recipient_name: document.getElementById("recipient_name").value,
+            client_name: document.getElementById("client_name").value,
+            client_contact: document.getElementById("client_contact").value,
+            client_email: document.getElementById("client_email").value,
+            location: document.getElementById("location").value,
+            facility: document.getElementById("facility").value,
+            incident_text: document.getElementById("incident_text").value,
+            classification: classification,
+            incident_repeated: document.getElementById("incident_repeated").value,
+            service: document.getElementById("service_select").value,
+            system: document.getElementById("system_select").value,
+            sla_response: sla.response !== undefined ? sla.response : "",
+            sla_processing: sla.processing !== undefined ? sla.processing : "",
+            sla_completion: sla.completion !== undefined ? sla.completion : "",
+            receipt_timestamp: document.getElementById("receipt_timestamp").value,
+            employee_name: document.getElementById("employee_name").value,
+            maintenance_type: document.getElementById("maintenance_type").value,
+            general_notes: document.getElementById("generalNotes").value,
+            inspections: collectInspectionRows(),
+            photo_before: document.getElementById("prev_before").getAttribute('data-base64') || "",
+            photo_during: document.getElementById("prev_during").getAttribute('data-base64') || "",
+            photo_after: document.getElementById("prev_after").getAttribute('data-base64') || "",
+            signature: document.getElementById("signature").value
+        };
+
+        // Content-Type: text/plain يجعله "طلباً بسيطاً" فلا يرسل المتصفح
+        // preflight، وهو ما لا يدعمه Apps Script. الخادم يحلل النص كـ JSON.
+        submitWithRetry(payload)
+            .then(result => {
+                if (!result.ok) throw new Error(result.error || "خطأ غير معروف من الخادم");
+                onSubmitSuccess(result);
+            })
+            .catch(onSubmitFailure);
+    });
+
+    populateServiceDropdown();
+</script>
+</body>
+</html>

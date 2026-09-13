@@ -1,0 +1,7 @@
+# ملفات التطوير — لا تُنشر مع الموقع
+Code.gs
+SETUP.md
+test_backend.py
+docs/
+__pycache__/
+*.py
