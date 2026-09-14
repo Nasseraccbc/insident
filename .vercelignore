@@ -1,7 +1,10 @@
-# ملفات التطوير — لا تُنشر مع الموقع
-Code.gs
-SETUP.md
-test_backend.py
+# صفحة معاينة الرسوم للتطوير فقط — لا تُنشر
+app/_vizlab.html
+
+# ليست جزءاً من الموقع
+tools/
+supabase/
 docs/
-__pycache__/
-*.py
+*.md
+Code.gs
+test_backend.py
