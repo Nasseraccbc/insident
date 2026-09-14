@@ -1,0 +1,117 @@
+/* ============================================================================
+   الرسوم البيانية — هيكل هادئ: البيانات وحدها المسموح لها أن تعلو
+   ============================================================================ */
+
+/* ─── صفّ المرشّحات: واحد أعلى الصفحة يشمل كل ما تحته ──────────────────── */
+
+.viz-filters {
+  display: flex; align-items: center; gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+
+/* ─── الرقم البطل: واحد في الشاشة، وبالخط ذاته لا بخط زخرفي ───────────── */
+
+.hero-card .card-body { padding: var(--sp-6); }
+.hero-num {
+  font-size: 3.4rem; font-weight: 800; line-height: 1;
+  letter-spacing: -.02em;
+  margin: var(--sp-2) 0 var(--sp-3);
+  /* أرقام متناسبة لا جدولية: الأخيرة تجعل الرقم الكبير مفكّكًا */
+  font-variant-numeric: proportional-nums;
+}
+.hero-num.ok     { color: var(--ok); }
+.hero-num.warn   { color: var(--warn); }
+.hero-num.danger { color: var(--danger); }
+
+.viz-meter {
+  height: 10px; border-radius: var(--r-full);
+  overflow: hidden;
+}
+.viz-meter i { display: block; height: 100%; border-radius: var(--r-full); }
+
+/* ─── بطاقة رسم ────────────────────────────────────────────────────────── */
+
+.viz-card .card-body { display: flex; flex-direction: column; gap: var(--sp-3); }
+.viz-host { min-height: 46px; }
+/* الرسم يرث dir=rtl من الصفحة، وحينها ينقلب معنى text-anchor: «end» يصير
+   يسار العنصر لا يمينه، فتخرج التسميات العربية من البطاقة. تثبيت الاتجاه
+   هنا يجعل المرساة هندسية كما تفترضها حسابات الرسم، والنص العربي يبقى
+   مقروءًا من اليمين لأن ترتيب الحروف شأن ثنائي الاتجاه لا شأن المرساة. */
+.viz { display: block; width: 100%; height: auto; overflow: visible; direction: ltr; }
+.viz:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: var(--r); }
+
+.viz-empty {
+  display: grid; place-items: center;
+  min-height: 120px; padding: var(--sp-5);
+  border: 1px dashed var(--border-str); border-radius: var(--r);
+  text-align: center;
+}
+
+/* النصوص ترتدي رموز النص لا لون السلسلة: اللون هوية العلامة المجاورة،
+   ولون سلسلة فاتح يصير نصًّا غير مقروء على السطح. */
+.viz-tick { font-size: 11px; font-variant-numeric: tabular-nums; fill: var(--text-3); }
+.viz-lbl  { font-size: 12px; font-weight: 600; fill: var(--text-2); }
+.viz-lbl.soft { font-weight: 600; fill: var(--text-2); }
+.viz-cell { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* ─── العلامات: الأصناف تحمل الألوان فيعيد المتصفح طلاءها مع المظهر ──── */
+
+.viz-grid { stroke: var(--border); stroke-width: 1; }      /* شعري صلب لا متقطّع */
+.viz-axis { stroke: var(--border-str); stroke-width: 1; }
+.viz-cross { stroke: var(--border-str); stroke-width: 1; }
+.viz-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* حلقة سطح 2px تُبقي النقطة مقروءة حيث تعبر خطًّا أو نقطة أخرى */
+.viz-dot { stroke: var(--surface); stroke-width: 2; }
+.viz-heat.empty { fill: transparent; stroke: var(--border); stroke-width: 1; }
+.viz-zone { stroke: var(--danger); stroke-width: 1.5; fill: none; stroke-linecap: square; }
+
+/* ─── وسيلة الإيضاح ────────────────────────────────────────────────────── */
+
+.viz-legend { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); }
+.viz-leg {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: var(--fs-xs); color: var(--text-2);
+}
+.viz-key { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.viz-key.ln { width: 14px; height: 2px; border-radius: 2px; }
+
+/* ─── التلميح ──────────────────────────────────────────────────────────── */
+
+.viz-tip {
+  position: fixed; inset-block-start: 0; inset-inline-start: 0;
+  z-index: 400; pointer-events: none;
+  min-width: 132px; max-width: 260px;
+  padding: 9px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border-str);
+  border-radius: var(--r);
+  box-shadow: var(--sh);
+  opacity: 0; transition: opacity var(--t-fast);
+}
+.viz-tip.on { opacity: 1; }
+.viz-tip-t {
+  font-size: var(--fs-xs); color: var(--text-3);
+  padding-bottom: 5px; margin-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+/* القيمة تتقدّم والاسم يتبع: القارئ يعرف السلسلة ويريد الرقم */
+.viz-tip-r { display: flex; align-items: center; gap: 7px; font-size: var(--fs-xs); }
+.viz-tip-r + .viz-tip-r { margin-top: 3px; }
+.viz-tip-r b { font-variant-numeric: tabular-nums; color: var(--text); font-size: var(--fs-sm); }
+.viz-tip-r span { color: var(--text-3); }
+
+/* ─── التوأم الجدولي ───────────────────────────────────────────────────── */
+
+.viz-table > summary {
+  font-size: var(--fs-xs); color: var(--text-3);
+  cursor: pointer; padding: 4px 0; width: fit-content;
+}
+.viz-table > summary:hover { color: var(--brand); }
+.viz-tbl { font-size: var(--fs-xs); }
+.viz-tbl td, .viz-tbl th { padding: 5px 9px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 720px) {
+  .hero-num { font-size: 2.8rem; }
+  .viz-card .card-body { padding: var(--sp-4); }
+}

@@ -1,0 +1,168 @@
+/* ============================================================================
+   طبقة الوصول للبيانات — كل نداء لـ Supabase يمرّ من هنا.
+
+   لماذا طبقة وسيطة بدل نداء supabase مباشرة من كل شاشة:
+   الشاشات لا تعرف أسماء الجداول ولا شكل الاستعلامات، فتغيير عمود واحد
+   يُعدَّل في مكان واحد بدل ملاحقته في عشر شاشات.
+   ============================================================================ */
+
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+
+export const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+});
+
+/** يفكّ غلاف {data,error} ويرفع الخطأ ليُلتقط في مكان واحد أعلى. */
+function unwrap({ data, error }) {
+  if (error) throw error;
+  return data;
+}
+
+/* ─── المصادقة ─────────────────────────────────────────────────────────── */
+
+export const auth = {
+  async signIn(email, password) {
+    return unwrap(await sb.auth.signInWithPassword({ email, password }));
+  },
+  async signOut() {
+    await sb.auth.signOut();
+  },
+  async session() {
+    const { data } = await sb.auth.getSession();
+    return data.session;
+  },
+  onChange(fn) {
+    return sb.auth.onAuthStateChange((_e, s) => fn(s));
+  },
+};
+
+/* ─── المستخدمون ───────────────────────────────────────────────────────── */
+
+export const profiles = {
+  async me(userId) {
+    return unwrap(
+      await sb.from("profiles").select("*").eq("id", userId).single()
+    );
+  },
+  async all() {
+    return unwrap(
+      await sb.from("profiles").select("*").eq("active", true).order("full_name")
+    );
+  },
+  /** الفنيون مجمّعون بالتخصص — الشكل الذي تحتاجه قائمة الإسناد عند المشرف. */
+  async techniciansBySpecialty() {
+    const rows = unwrap(
+      await sb.from("profiles").select("*")
+        .eq("role", "technician").eq("active", true).order("full_name")
+    );
+    const groups = {};
+    for (const r of rows) {
+      const k = r.specialty || "other";
+      (groups[k] ||= []).push(r);
+    }
+    return groups;
+  },
+};
+
+/* ─── السجلات ──────────────────────────────────────────────────────────── */
+
+export const records = {
+  async list({ formCode, state, assignedTo, limit = 200 } = {}) {
+    let q = sb.from("records").select("*").order("created_at", { ascending: false }).limit(limit);
+    if (formCode) q = q.eq("form_code", formCode);
+    if (state) q = q.eq("state", state);
+    if (assignedTo) q = q.eq("assigned_to", assignedTo);
+    return unwrap(await q);
+  },
+  async get(id) {
+    return unwrap(await sb.from("records").select("*").eq("id", id).single());
+  },
+  async create(row) {
+    return unwrap(await sb.from("records").insert(row).select().single());
+  },
+  async update(id, patch) {
+    return unwrap(await sb.from("records").update(patch).eq("id", id).select().single());
+  },
+  async history(id) {
+    // الترتيب بالمعرّف لا بالوقت: كل انتقالات المعاملة الواحدة تحمل الطابع
+    // الزمني ذاته، فالترتيب بالوقت بينها عشوائي.
+    return unwrap(
+      await sb.from("record_history").select("*").eq("record_id", id).order("id")
+    );
+  },
+
+  /** قرار مشرف الموقع. الصلاحية والشروط تُفحص في القاعدة لا هنا. */
+  async review(id, decision, note) {
+    const { data, error } = await sb.rpc("review_record", {
+      p_record: id, p_decision: decision, p_note: note || null,
+    });
+    if (error) throw error;
+    return data;
+  },
+  async counts() {
+    return unwrap(await sb.from("records").select("state, priority, form_code, created_at, closed_at, sla_close_due"));
+  },
+};
+
+/* ─── المهام ───────────────────────────────────────────────────────────── */
+
+export const tasks = {
+  async list({ assignedTo, status, limit = 200 } = {}) {
+    let q = sb.from("tasks").select("*").order("created_at", { ascending: false }).limit(limit);
+    if (assignedTo) q = q.eq("assigned_to", assignedTo);
+    if (status) q = q.eq("status", status);
+    return unwrap(await q);
+  },
+  async create(row) {
+    return unwrap(await sb.from("tasks").insert(row).select().single());
+  },
+  async update(id, patch) {
+    return unwrap(await sb.from("tasks").update(patch).eq("id", id).select().single());
+  },
+};
+
+/* ─── الأصول ───────────────────────────────────────────────────────────── */
+
+export const assets = {
+  async list() {
+    return unwrap(
+      await sb.from("assets").select("*").eq("active", true).order("sort")
+    );
+  },
+};
+
+/* ─── نقاط الفحص الكهربائي ─────────────────────────────────────────────── */
+/* مصدرها جدول القاعدة لا ثابت في الواجهة — المشغّل gen_corrective_wo يقرأ
+   من الجدول ذاته لتسمية الأعطال وتحديد خطورتها. */
+
+export const checkPoints = {
+  async list() {
+    return unwrap(await sb.from("check_points").select("*").order("sort"));
+  },
+};
+
+/* ─── المرفقات ─────────────────────────────────────────────────────────── */
+
+const BUCKET = "attachments";
+
+export const files = {
+  async upload(path, blob, mime = "image/jpeg") {
+    const { error } = await sb.storage.from(BUCKET).upload(path, blob, {
+      contentType: mime, upsert: true,
+    });
+    if (error) throw error;
+    return path;
+  },
+  /** الحاوية خاصة: الوصول برابط موقّت لا برابط دائم قابل للتسريب. */
+  async signedUrl(path, seconds = 3600) {
+    const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(path, seconds);
+    if (error) throw error;
+    return data.signedUrl;
+  },
+  async record(row) {
+    return unwrap(await sb.from("attachments").insert(row).select().single());
+  },
+  async forRecord(recordId) {
+    return unwrap(await sb.from("attachments").select("*").eq("record_id", recordId));
+  },
+};

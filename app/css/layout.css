@@ -1,0 +1,261 @@
+/* ============================================================================
+   التخطيط: شريط جانبي · شريط علوي · منطقة المحتوى · شاشة الدخول
+   ============================================================================ */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: var(--topbar-h) 1fr;
+  grid-template-areas: "side top" "side main";
+  min-height: 100vh;
+}
+
+/* ─── الشريط الجانبي ───────────────────────────────────────────────────── */
+
+.sidebar {
+  grid-area: side;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex; flex-direction: column;
+  border-inline-end: 1px solid rgba(255,255,255,.06);
+  position: sticky; top: 0; height: 100vh;
+  z-index: 60;
+}
+
+.brand {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: 0 var(--sp-5);
+  height: var(--topbar-h); flex: none;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.brand-mark {
+  width: 32px; height: 32px; flex: none;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--gold-300), var(--gold-500));
+  color: var(--g-900);
+  display: grid; place-items: center;
+  font-weight: 900; font-size: .8rem;
+}
+.brand-text { min-width: 0; }
+.brand-name { color: #fff; font-weight: 800; font-size: var(--fs-base); line-height: 1.2; }
+.brand-sub  { font-size: 10px; color: var(--gold-300); letter-spacing: .08em; }
+
+.nav { flex: 1; overflow-y: auto; padding: var(--sp-4) var(--sp-3); }
+.nav-group + .nav-group { margin-top: var(--sp-5); }
+.nav-group-title {
+  font-size: 10px; font-weight: 800; letter-spacing: .1em;
+  color: rgba(255,255,255,.3); text-transform: uppercase;
+  padding: 0 var(--sp-3); margin-bottom: var(--sp-2);
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: var(--sp-3);
+  width: 100%;
+  padding: 9px var(--sp-3);
+  border-radius: var(--r);
+  color: var(--sidebar-text);
+  font-size: var(--fs-base); font-weight: 600;
+  text-align: start;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.nav-item:hover { background: var(--sidebar-hover); color: #fff; text-decoration: none; }
+.nav-item.active { background: var(--sidebar-active); color: #fff; }
+/* الحالة النشطة لا تعتمد على اللون وحده — شريط ذهبي يميّزها */
+.nav-item.active::before {
+  content: ""; position: absolute; inset-inline-start: 0;
+  width: 3px; height: 22px; border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+.nav-item { position: relative; }
+.nav-ico { width: 18px; text-align: center; flex: none; opacity: .85; }
+.nav-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.nav-count {
+  font-size: 10px; font-weight: 800;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: var(--r-full);
+  background: var(--accent); color: var(--g-900);
+  display: grid; place-items: center;
+}
+
+.side-foot {
+  flex: none; padding: var(--sp-3);
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+/* ─── الشريط العلوي ────────────────────────────────────────────────────── */
+
+.topbar {
+  grid-area: top;
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: 0 var(--sp-5);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50;
+}
+
+.burger { display: none; }
+
+.search {
+  position: relative; flex: 1; max-width: 420px;
+}
+.search input {
+  width: 100%; padding: 7px 12px; padding-inline-start: 34px;
+  border: 1px solid var(--border); border-radius: var(--r-full);
+  background: var(--surface-2); color: var(--text);
+  font-size: var(--fs-sm);
+}
+.search input:focus { outline: none; border-color: var(--brand); background: var(--surface); }
+.search .ico {
+  position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-3); pointer-events: none; font-size: var(--fs-sm);
+}
+
+.user-chip {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 4px 10px 4px 4px; border-radius: var(--r-full);
+  border: 1px solid var(--border);
+  transition: background var(--t-fast);
+}
+.user-chip:hover { background: var(--surface-3); }
+.avatar {
+  width: 28px; height: 28px; flex: none; border-radius: 50%;
+  background: var(--brand); color: #fff;
+  display: grid; place-items: center;
+  font-weight: 800; font-size: var(--fs-xs);
+}
+[data-theme="dark"] .avatar { color: var(--n-900); }
+.user-meta { line-height: 1.2; text-align: start; }
+.user-name { font-size: var(--fs-sm); font-weight: 700; }
+.user-role { font-size: 10px; color: var(--text-3); }
+
+/* ─── المحتوى ──────────────────────────────────────────────────────────── */
+
+.main { grid-area: main; padding: var(--sp-6); min-width: 0; }
+.page { max-width: 1400px; margin: 0 auto; }
+
+.page-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--sp-4); flex-wrap: wrap;
+  margin-bottom: var(--sp-6);
+}
+.page-title { font-size: var(--fs-2xl); font-weight: 800; line-height: 1.2; }
+.page-sub { color: var(--text-3); font-size: var(--fs-sm); margin-top: 2px; }
+.crumbs { font-size: var(--fs-xs); color: var(--text-3); margin-bottom: 6px; }
+.crumbs span + span::before { content: "‹"; margin: 0 6px; opacity: .6; }
+[dir="ltr"] .crumbs span + span::before { content: "›"; }
+
+.grid-2 { display: grid; gap: var(--sp-5); grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+.grid-3 { display: grid; gap: var(--sp-5); grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.span-2 { grid-column: span 2; }
+@media (max-width: 900px) { .span-2 { grid-column: auto; } }
+
+/* ─── شاشة تسجيل الدخول ────────────────────────────────────────────────── */
+
+.login-wrap {
+  min-height: 100vh;
+  display: grid; place-items: center;
+  padding: var(--sp-5);
+  background:
+    radial-gradient(900px 520px at 85% -10%, rgba(212,175,55,.13), transparent 60%),
+    radial-gradient(760px 480px at 10% 110%, rgba(26,77,46,.18), transparent 62%),
+    var(--bg);
+}
+.login-card {
+  width: 100%; max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-lg);
+  padding: var(--sp-8) var(--sp-6);
+}
+.login-brand { text-align: center; margin-bottom: var(--sp-6); }
+.login-mark {
+  width: 56px; height: 56px; margin: 0 auto var(--sp-4);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--g-500), var(--g-700));
+  color: var(--accent);
+  display: grid; place-items: center;
+  font-size: 1.3rem; font-weight: 900;
+  box-shadow: var(--sh);
+}
+
+/* ─── لوحة الفني: الجوّال أولًا ────────────────────────────────────────── */
+/* الفني في الميدان بيد واحدة وأحيانًا بقفاز — مساحات اللمس ٥٦px لا ٣٦،
+   وبطاقات بدل جداول، وإجراء واحد بارز لكل بطاقة. */
+
+.field-list { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+.task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--brand);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  box-shadow: var(--sh-sm);
+}
+.task-card.p-critical { border-inline-start-color: var(--danger); }
+.task-card.p-high     { border-inline-start-color: var(--warn); }
+.task-card.p-medium   { border-inline-start-color: var(--info); }
+
+.task-top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
+.task-title { font-size: var(--fs-md); font-weight: 700; line-height: 1.35; }
+.task-meta { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: var(--sp-2);
+             font-size: var(--fs-xs); color: var(--text-3); }
+.task-meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+.task-timer {
+  font-family: var(--mono); font-size: var(--fs-lg); font-weight: 800;
+  letter-spacing: .02em;
+}
+.task-timer.ok   { color: var(--ok); }
+.task-timer.warn { color: var(--warn); }
+.task-timer.late { color: var(--danger); }
+
+.task-actions { display: flex; gap: var(--sp-2); margin-top: var(--sp-4); }
+.task-actions .btn { flex: 1; min-height: 44px; }
+
+@media (max-width: 720px) {
+  .field-list .btn, .task-actions .btn { min-height: 52px; font-size: var(--fs-md); }
+  .task-title { font-size: var(--fs-lg); }
+}
+
+/* ─── الاستجابة ────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .app { grid-template-columns: 1fr; grid-template-areas: "top" "main"; }
+
+  /* inset-inline-start: 0 يضع الشريط على الحافة الابتدائية في الاتجاهين —
+     اليسار في LTR واليمين في RTL — فلا حاجة لتجاوز الموضع.
+     المقلوب هو اتجاه الانزلاق فقط، لأن translateX يبقى محور X فيزيائيًا
+     ولا ينعكس مع dir. */
+  .sidebar {
+    position: fixed; inset-block: 0; inset-inline-start: 0;
+    width: 280px; height: 100vh;
+    transform: translateX(-102%);
+    transition: transform var(--t);
+    box-shadow: var(--sh-lg);
+    z-index: 200;
+  }
+  [dir="rtl"] .sidebar { transform: translateX(102%); }
+  .sidebar.open, [dir="rtl"] .sidebar.open { transform: translateX(0); }
+
+  .burger { display: inline-flex; }
+  .scrim {
+    position: fixed; inset: 0; background: rgba(9,28,17,.45);
+    z-index: 150; animation: fade .16s var(--ease);
+  }
+  .main { padding: var(--sp-4); }
+}
+
+@media (max-width: 640px) {
+  .main { padding: var(--sp-3); }
+  .page-title { font-size: var(--fs-xl); }
+  .search { display: none; }
+  .user-meta { display: none; }
+  .stats { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--sp-3); }
+  .stat { padding: var(--sp-3) var(--sp-4); }
+  .stat-value { font-size: var(--fs-2xl); }
+  .card-body { padding: var(--sp-4); }
+  #toasts { inset-inline: var(--sp-3); inset-block-end: var(--sp-3); }
+  .toast { max-width: none; }
+}

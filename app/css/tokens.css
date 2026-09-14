@@ -1,0 +1,165 @@
+/* ============================================================================
+   نظام التصميم — المتغيّرات
+   الهوية: أخضر الهيئة #1a4d2e · ذهبي #d4af37
+   ============================================================================ */
+
+:root {
+  /* ─── الهوية: سُلَّم مشتق من اللونين لا لونان معزولان ─────────────────── */
+  --g-50:  #f0f6f2;
+  --g-100: #d8e8de;
+  --g-200: #b0d0bd;
+  --g-300: #7fb197;
+  --g-400: #4d8c6c;
+  --g-500: #2b6b48;
+  --g-600: #1a4d2e;   /* الأساس */
+  --g-700: #143d25;
+  --g-800: #0f2c1b;
+  --g-900: #091c11;
+
+  --gold-50:  #fdf9ec;
+  --gold-100: #faf0cd;
+  --gold-200: #f2df9c;
+  --gold-300: #e6c765;
+  --gold-400: #d4af37;   /* الأساس */
+  --gold-500: #b8942a;
+  --gold-600: #927320;
+  --gold-700: #6b541a;
+
+  /* ─── محايدات بميل دافئ يتناغم مع الأخضر ─────────────────────────────── */
+  --n-0:   #ffffff;
+  --n-25:  #fbfcfb;
+  --n-50:  #f6f8f6;
+  --n-100: #eef1ef;
+  --n-200: #dfe4e1;
+  --n-300: #c5ccc8;
+  --n-400: #9aa39e;
+  --n-500: #6f7975;
+  --n-600: #525b57;
+  --n-700: #3d4441;
+  --n-800: #262b29;
+  --n-900: #161918;
+  --n-950: #0d0f0e;
+
+  /* ─── دلالية ─────────────────────────────────────────────────────────── */
+  --ok:      #16794a;  --ok-bg:      #e7f5ee;  --ok-br:      #a8d9c0;
+  --warn:    #b45309;  --warn-bg:    #fef3e2;  --warn-br:    #f5cf95;
+  --danger:  #b91c1c;  --danger-bg:  #fdeaea;  --danger-br:  #f3b0b0;
+  --info:    #1d5e8f;  --info-bg:    #e8f2fa;  --info-br:    #a9cfe8;
+
+  /* ─── ألوان الرسوم ───────────────────────────────────────────────────── */
+  /* مشتقّة من هوى الهيئة (أخضر 155°) والذهبي (85°) ثم مُرِّرت على مدقّق
+     مهارة dataviz حتى اجتازت: نطاق الإضاءة · أرضية التشبّع · فصل عمى
+     الألوان · التباين مقابل السطح. سُلَّم الهوية الأصلي رسب في أرضية
+     التشبّع (C≈0.08) فلا يصلح لتمييز السلاسل، ولذلك درجات خاصة بالرسوم.
+       viz-1/2  فئوي (سلسلتان)  ΔE 29.5 — الذهبي دون 3:1 فيلزمه تعويض:
+                تسميات مباشرة وعرض جدولي، وكلاهما مشحون
+       viz-ord  ترتيبي ٦ درجات (مراحل الاعتماد) — هوى واحد، ΔL ≥ 0.06
+       viz-heat متدرّج ٤ درجات (عدد المخاطر) — طرفه الفاتح يقترب من السطح */
+  --viz-1: #006133;
+  --viz-2: #ddac37;
+
+  --viz-ord-1: #6dc88f;  --viz-ord-2: #55b07a;  --viz-ord-3: #3d9a64;
+  --viz-ord-4: #238450;  --viz-ord-5: #006e3c;  --viz-ord-6: #005928;
+
+  --viz-heat-1: #8de9ae; --viz-heat-2: #62bd85;
+  --viz-heat-3: #35935e; --viz-heat-4: #006b39;
+  /* حبر العدد داخل الخلية: يتبع إضاءة التعبئة لا قيمة الخلية */
+  --viz-heat-1-ink: #0d0f0e; --viz-heat-2-ink: #0d0f0e;
+  --viz-heat-3-ink: #ffffff; --viz-heat-4-ink: #ffffff;
+
+  /* ─── أدوار الأسطح ───────────────────────────────────────────────────── */
+  --bg:         var(--n-50);
+  --surface:    var(--n-0);
+  --surface-2:  var(--n-25);
+  --surface-3:  var(--n-100);
+  --border:     var(--n-200);
+  --border-str: var(--n-300);
+
+  --text:      var(--n-800);
+  --text-2:    var(--n-600);
+  --text-3:    var(--n-500);
+  --text-inv:  var(--n-0);
+
+  --brand:      var(--g-600);
+  --brand-hov:  var(--g-700);
+  --brand-soft: var(--g-50);
+  --accent:     var(--gold-400);
+
+  --sidebar-bg:     var(--g-800);
+  --sidebar-text:   #c9d8cf;
+  --sidebar-hover:  var(--g-700);
+  --sidebar-active: var(--g-600);
+
+  /* ─── مقاسات ─────────────────────────────────────────────────────────── */
+  --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;  --sp-4: 16px;
+  --sp-5: 20px;  --sp-6: 24px;  --sp-8: 32px;  --sp-10: 40px;  --sp-12: 48px;
+
+  --r-sm: 6px;   --r: 10px;     --r-lg: 14px;  --r-xl: 20px;   --r-full: 999px;
+
+  --fs-xs: .75rem;   --fs-sm: .8125rem;  --fs-base: .875rem;
+  --fs-md: 1rem;     --fs-lg: 1.125rem;  --fs-xl: 1.375rem;   --fs-2xl: 1.75rem;
+  --fs-3xl: 2.25rem;
+
+  --sh-sm: 0 1px 2px rgba(9,28,17,.06);
+  --sh:    0 2px 8px rgba(9,28,17,.07), 0 1px 2px rgba(9,28,17,.04);
+  --sh-lg: 0 8px 28px rgba(9,28,17,.10), 0 2px 6px rgba(9,28,17,.05);
+  --sh-up: 0 -2px 12px rgba(9,28,17,.07);
+
+  --sidebar-w: 248px;
+  --topbar-h:  60px;
+
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --t-fast: .13s var(--ease);
+  --t:      .2s var(--ease);
+
+  --font: "Segoe UI", "Noto Sans Arabic", "Cairo", Tahoma, system-ui, sans-serif;
+  --mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+}
+
+/* ─── الوضع الليلي ─────────────────────────────────────────────────────── */
+/* الهوية لا تنقلب: الأخضر يفتح ليبقى مقروءًا على خلفية داكنة */
+
+[data-theme="dark"] {
+  --bg:         var(--n-950);
+  --surface:    #151917;
+  --surface-2:  #1b201e;
+  --surface-3:  #232926;
+  --border:     #2c3330;
+  --border-str: #3b433f;
+
+  --text:     #e6ebe8;
+  --text-2:   #a9b3ae;
+  --text-3:   #7d8783;
+  --text-inv: var(--n-900);
+
+  --brand:      var(--g-300);
+  --brand-hov:  var(--g-200);
+  --brand-soft: #16241c;
+  --accent:     var(--gold-300);
+
+  --sidebar-bg:     #101513;
+  --sidebar-text:   #9fb0a6;
+  --sidebar-hover:  #1b2320;
+  --sidebar-active: var(--g-700);
+
+  --ok:     #4ade80;  --ok-bg:     #11291d;  --ok-br:     #1f5137;
+  --warn:   #fbbf24;  --warn-bg:   #2a2011;  --warn-br:   #574117;
+  --danger: #f87171;  --danger-bg: #2c1516;  --danger-br: #5d2626;
+  --info:   #60a5fa;  --info-bg:   #111f2c;  --info-br:   #1f3c57;
+
+  --viz-1: #4ca871;
+  --viz-2: #a37800;
+
+  --viz-ord-1: #006836;  --viz-ord-2: #1c804c;  --viz-ord-3: #3b9863;
+  --viz-ord-4: #56b17a;  --viz-ord-5: #70cb92;  --viz-ord-6: #8ae5ab;
+
+  --viz-heat-1: #004e1e; --viz-heat-2: #107845;
+  --viz-heat-3: #4aa66f; --viz-heat-4: #7ad59c;
+  --viz-heat-1-ink: #ffffff; --viz-heat-2-ink: #ffffff;
+  --viz-heat-3-ink: #0d0f0e; --viz-heat-4-ink: #0d0f0e;
+
+  --sh-sm: 0 1px 2px rgba(0,0,0,.4);
+  --sh:    0 2px 10px rgba(0,0,0,.45);
+  --sh-lg: 0 10px 34px rgba(0,0,0,.55);
+  --sh-up: 0 -2px 14px rgba(0,0,0,.45);
+}
