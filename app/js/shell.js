@@ -225,12 +225,12 @@ export async function boot() {
 
   window.addEventListener("hashchange", () => { if (state.profile) render(); });
 
-  auth.onChange(async (session) => {
-    if (!session) {
-      state.user = null; state.profile = null;
-      renderLogin();
-      return;
-    }
+  /* استدعاء أي دالة من Supabase داخل onAuthStateChange يُقفل النظام:
+     المكتبة تُمسك قفل المصادقة أثناء تنفيذ المستمع، وأي نداء آخر ينتظر
+     القفل نفسه فيتعلّق الاثنان. ظهر ذلك عند تحديث الصفحة وأنت داخل —
+     يُطلق INITIAL_SESSION فيتوقف كل شيء عند «جارٍ التحميل…».
+     الحل الموصى به: تأجيل العمل خارج المستمع. */
+  const enter = async (session) => {
     if (state.profile && state.user?.id === session.user.id) return;
     state.user = session.user;
     try {
@@ -241,8 +241,17 @@ export async function boot() {
       return;
     }
     render();
+  };
+
+  auth.onChange((session) => {
+    if (!session) {
+      state.user = null; state.profile = null;
+      renderLogin();
+      return;
+    }
+    setTimeout(() => enter(session), 0);
   });
 
   const session = await auth.session();
-  if (!session) renderLogin();
+  if (session) await enter(session); else renderLogin();
 }
