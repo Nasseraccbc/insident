@@ -135,6 +135,13 @@ export const assets = {
       await sb.from("assets").select("*").eq("active", true).order("sort")
     );
   },
+  /** معدات مجموعة (تكييف · مدني · سباكة) مرتّبة، لبناء جولة الفحص. */
+  async byGroup(category) {
+    return unwrap(
+      await sb.from("assets").select("*")
+        .eq("active", true).eq("category", category).order("sort")
+    );
+  },
 };
 
 /* ─── نقاط الفحص الكهربائي ─────────────────────────────────────────────── */

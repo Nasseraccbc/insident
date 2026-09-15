@@ -384,3 +384,30 @@
 .sla-box.frozen .sla-v::after { content: " ⏹"; font-size: .55em; vertical-align: middle; }
 .sla-btn { margin-top: 8px; width: 100%; min-height: 34px; }
 .sla-box.run .sla-btn:hover, .sla-box.warn .sla-btn:hover { border-color: var(--brand); color: var(--brand); }
+
+/* ─── جولة فحص الأنظمة ─────────────────────────────────────────────────── */
+
+.sysc-systems { margin: var(--sp-4) 0; max-width: 420px; }
+.sysc-list { display: grid; gap: var(--sp-2); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+.sysc-item {
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--border-str);
+  border-radius: var(--r);
+  background: var(--surface);
+  padding: var(--sp-3);
+}
+.sysc-item.on  { border-inline-start-color: var(--ok); }
+.sysc-item.bad { border-inline-start-color: var(--danger); background: var(--danger-bg); }
+
+.sysc-top { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.sysc-code {
+  font-size: 10px; font-weight: 800; flex: none;
+  color: var(--brand); background: var(--brand-soft);
+  border-radius: var(--r-sm); padding: 2px 6px;
+}
+.sysc-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; }
+.sysc-item .seg { width: 100%; }
+.sysc-item .seg-btn { flex: 1; width: auto; font-size: var(--fs-xs); font-weight: 700; }
+
+@media (max-width: 720px) { .sysc-list { grid-template-columns: 1fr; } }

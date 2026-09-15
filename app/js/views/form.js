@@ -18,7 +18,7 @@ import {
   field, select, modal, confirmDialog,
 } from "../ui.js";
 import {
-  FORMS, formByCode, formName, renderSection, blankData, completion, tr,
+  FORMS, formByCode, formName, renderSection, blankData, completion, tr, isWidgetSection,
 } from "../forms/renderer.js";
 import { photoGrid, uploadAll, loadExisting } from "../photos.js";
 import { slaPanel, stampOpen, priorityOf, CLASS_OF } from "../forms/timer.js";
@@ -226,7 +226,9 @@ async function formEditor(page, state, { form, taskId, recordId }) {
     }
 
     (form.secs || []).forEach((sec, i) => {
-      body.append(renderSection(sec, data, onFieldChange, { open: i < 2 }));
+      // قسم الودجة المركّبة هو لبّ النموذج، فطيّه يخفي العمل الحقيقي
+      body.append(renderSection(sec, data, onFieldChange,
+        { open: i < 2 || isWidgetSection(sec) }));
     });
 
     /* الصور: يعرضها المحرّك لكل نموذج — التوثيق البصري مطلوب في كلها */

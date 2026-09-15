@@ -836,6 +836,42 @@ export const FORMS=[
   ]},
   {t:"الاعتمادات", en:"Authorisations", sig:true,
    roles:["أعدّه — فني الكهرباء","راجعه — مشرف الموقع","اعتمده — مدير المشروع"]}
+ ]},
+
+{code:"INS-01", att:12, name:"جولة فحص الأنظمة والمعدات", en:"Systems & Equipment Inspection Round",
+ cls:"فحص ميداني", owner:"الفني المختص / مشرف الموقع",
+ std:["ISO 41001:2018","ISO 55001:2014","EN 13306"],
+ secs:[
+  {t:"بيانات الجولة", en:"Round data", f:[
+   {k:"no", l:"رقم التقرير", t:"reg", ph:"INS-2026-0000"},
+   {k:"dt", l:"التاريخ", t:"date"},
+   {k:"client", l:"اسم العميل / الجهة", t:"text"},
+   {k:"contact", l:"رقم التواصل", t:"text"},
+   {k:"email", l:"البريد الإلكتروني", t:"text"},
+   {k:"site", l:"الموقع", t:"text", ph:"مبنى الأمانة العامة — الرياض"},
+   {k:"fac", l:"المرفق", t:"text", ph:"المبنى أو المنشأة"},
+   {k:"floor", l:"الدور", t:"text"},
+   {k:"cu", l:"رقم الوحدة CU", t:"reg"},
+   {k:"co", l:"رقم أمر الخدمة CO", t:"reg"}
+  ]},
+  {t:"المنفّذ والتوقيت", en:"Executor & timing", f:[
+   {k:"tech", l:"اسم الفني المنفّذ", t:"text"},
+   {k:"mt", l:"نوع الصيانة", t:"sel", o:["وقائية","تصحيحية","طارئة","جولة تفتيشية"]},
+   {k:"t_from", l:"وقت البدء", t:"time"},
+   {k:"t_to", l:"وقت الانتهاء", t:"time"},
+   {k:"dur", l:"مدة التنفيذ (دقيقة)", t:"num", min:0}
+  ]},
+  {t:"فحص المعدات", en:"Equipment inspection",
+   note:"اختر المجموعة ثم النظام، فتظهر معداته. لكل معدة كمية وحالة: ممتازة أو تحتاج صيانة.",
+   noteEn:"Pick a group then a system to list its equipment. Each item takes a quantity and a status: excellent or needs service.", f:[
+   {k:"insp", l:"الأنظمة والمعدات", t:"syscheck"}
+  ]},
+  {t:"الملاحظات والتوصيات", en:"Notes & recommendations", f:[
+   {k:"note", l:"ملاحظات عامة", t:"area", rows:3},
+   {k:"rec", l:"التوصيات والإجراءات المقترحة", t:"area", rows:3},
+   {k:"next", l:"موعد الجولة القادمة", t:"date"}
+  ]},
+  SIGN
  ]}
 ];
 
@@ -915,4 +951,22 @@ Object.assign(DICT, {
  "نعم — كلي":"Yes - full","التوصيات والإجراءات المطلوبة":"Recommendations and Required Actions",
  "تاريخ الفحص القادم":"Next Inspection Date",
  "أعدّه — فني الكهرباء":"Prepared by - Electrician"
+});
+
+
+/* تسميات جولة فحص الأنظمة — INS-01 */
+Object.assign(DICT, {
+ "جولة فحص الأنظمة والمعدات":"Systems and Equipment Inspection Round",
+ "فحص ميداني":"Field inspection","الفني المختص / مشرف الموقع":"Technician / Site Supervisor",
+ "بيانات الجولة":"Round Data","رقم التقرير":"Report No.","اسم العميل / الجهة":"Client / Entity",
+ "رقم التواصل":"Contact Number","البريد الإلكتروني":"E-mail","المرفق":"Facility","الدور":"Floor",
+ "رقم الوحدة CU":"Unit No. (CU)","رقم أمر الخدمة CO":"Service Order No. (CO)",
+ "المنفّذ والتوقيت":"Executor and Timing","اسم الفني المنفّذ":"Technician Name",
+ "نوع الصيانة":"Maintenance Type","وقائية":"Preventive","تصحيحية":"Corrective",
+ "طارئة":"Emergency","جولة تفتيشية":"Inspection round",
+ "مدة التنفيذ (دقيقة)":"Duration (minutes)",
+ "فحص المعدات":"Equipment Inspection","الأنظمة والمعدات":"Systems and Equipment",
+ "الملاحظات والتوصيات":"Notes and Recommendations","ملاحظات عامة":"General Notes",
+ "التوصيات والإجراءات المقترحة":"Recommendations and Proposed Actions",
+ "موعد الجولة القادمة":"Next Round Date"
 });

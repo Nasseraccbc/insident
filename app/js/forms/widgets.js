@@ -430,3 +430,163 @@ export const WIDGETS = {
     wide: true,
   },
 };
+
+/* ============================================================================
+   ٤ · syscheck — جولة فحص الأنظمة
+   تطابق تسلسل النموذج الذي يعرفه الفريق: مجموعة ← نظام ← تنزل معداته،
+   ولكل معدة كمية وحالة. الشكل المخزَّن:
+     { "group": "hvac", "system": "HVAC",
+       "items": { "MC-01": { q: 2, s: "maint" }, ... } }
+   ============================================================================ */
+
+const GROUPS = [
+  { k: "hvac",     ar: "التكييف والتبريد والتهوية", en: "HVAC, Refrigeration & Ventilation" },
+  { k: "civil",    ar: "الأعمال المدنية والمعمارية", en: "Civil & Architectural" },
+  { k: "plumbing", ar: "السباكة والتصريف",           en: "Plumbing & Drainage" },
+];
+
+const ST = () => [
+  { v: "ok",    label: ar("ممتازة", "Excellent"),          cls: "ok" },
+  { v: "maint", label: ar("تحتاج صيانة", "Needs service"), cls: "fail" },
+];
+
+const groupCache = {};
+function groupAssets(cat) {
+  if (!groupCache[cat]) {
+    groupCache[cat] = assetsApi.byGroup(cat).catch((e) => { delete groupCache[cat]; throw e; });
+  }
+  return groupCache[cat];
+}
+
+function syscheckBuild(f, v, on) {
+  const value = isObj(v) ? copy(v) : { group: "", system: "", items: {} };
+  value.items ||= {};
+
+  const host = el("div", { class: "sysc" });
+  const sysBox = el("div", { class: "sysc-systems" });
+  const listBox = el("div", { class: "sysc-list" });
+  const sum = el("div", { class: "egrid-sum" });
+
+  const emit = () => { on(copy(value)); count(); };
+
+  function count() {
+    const items = Object.values(value.items);
+    const maint = items.filter((x) => x.s === "maint").length;
+    const good = items.filter((x) => x.s === "ok").length;
+    sum.replaceChildren(
+      el("b", { class: maint ? "bad" : "", text: String(maint) }),
+      el("span", { class: "dim", text: " " + ar("تحتاج صيانة", "need service") }),
+      el("span", { class: "dot" }),
+      el("b", { text: String(good) }),
+      el("span", { class: "dim", text: " " + ar("ممتازة", "excellent") })
+    );
+  }
+
+  /* المجموعة أولًا: ثلاث كتل كبيرة لا قائمة منسدلة — الفني يختار بإبهامه */
+  const groupRow = el("div", { class: "chips" }, ...GROUPS.map((g) =>
+    el("button", {
+      class: "chip", type: "button", "data-ui": "toggle",
+      "aria-pressed": String(value.group === g.k),
+      onclick: () => {
+        if (value.group !== g.k) { value.group = g.k; value.system = ""; }
+        groupRow.querySelectorAll(".chip").forEach((b, i) =>
+          b.setAttribute("aria-pressed", String(GROUPS[i].k === value.group)));
+        emit(); loadSystems();
+      },
+    }, ar(g.ar, g.en))
+  ));
+
+  function loadSystems() {
+    if (!value.group) { sysBox.replaceChildren(); listBox.replaceChildren(); return; }
+    sysBox.replaceChildren(el("div", { class: "dim small", text: ar("جارٍ التحميل…", "Loading…") }));
+    groupAssets(value.group).then((rows) => {
+      const systems = [];
+      for (const r of rows) {
+        let s = systems.find((x) => x.key === r.system_key);
+        if (!s) systems.push((s = { key: r.system_key, ar: r.system_ar, en: r.system_en, rows: [] }));
+        s.rows.push(r);
+      }
+      sysBox.replaceChildren(
+        el("div", { class: "field" },
+          el("label", { text: ar("النظام", "System") }),
+          selectSystems(systems))
+      );
+      drawList(systems);
+    }).catch((err) => sysBox.replaceChildren(
+      el("div", { class: "note danger small", text: (err.message || "") })));
+  }
+
+  function selectSystems(systems) {
+    const sel = el("select", { class: "select", onchange: (e) => {
+      value.system = e.target.value; emit(); drawList(systems);
+    } });
+    sel.append(el("option", { value: "" }, "— " + ar("اختر النظام", "Select a system") + " —"));
+    for (const s of systems) {
+      sel.append(el("option", { value: s.key, selected: s.key === value.system },
+        `${ar(s.ar, s.en)} (${s.rows.length})`));
+    }
+    return sel;
+  }
+
+  function drawList(systems) {
+    const s = systems.find((x) => x.key === value.system);
+    if (!s) {
+      listBox.replaceChildren(el("div", { class: "viz-empty small muted",
+        text: ar("اختر النظام لتظهر معداته", "Pick a system to list its equipment") }));
+      return;
+    }
+    listBox.replaceChildren(...s.rows.map(equipRow));
+  }
+
+  function equipRow(r) {
+    const rec = (value.items[r.code] ||= { q: 1, s: "" });
+    const qty = el("span", { class: "qty-n", text: String(rec.q ?? 1) });
+    const row = el("div", { class: "sysc-item" + (rec.s ? " on" : "") });
+
+    const setQ = (n) => {
+      rec.q = Math.max(1, Math.min(99, n));
+      qty.textContent = String(rec.q);
+      emit();
+    };
+
+    row.append(
+      el("div", { class: "sysc-top" },
+        el("span", { class: "sysc-code mono", text: r.code }),
+        el("span", { class: "sysc-name grow", text: lang === "en" ? r.name_en : r.name_ar }),
+        el("div", { class: "qty" },
+          el("button", { class: "qty-b", type: "button", "data-ui": "toggle",
+                         "aria-label": ar("إنقاص", "Decrease"),
+                         onclick: () => setQ((rec.q || 1) - 1), text: "−" }),
+          qty,
+          el("button", { class: "qty-b", type: "button", "data-ui": "toggle",
+                         "aria-label": ar("زيادة", "Increase"),
+                         onclick: () => setQ((rec.q || 1) + 1), text: "+" })
+        )
+      ),
+      seg(ST(), rec.s || "", (nv) => {
+        if (nv) rec.s = nv; else delete rec.s;
+        row.classList.toggle("on", !!rec.s);
+        row.classList.toggle("bad", rec.s === "maint");
+        emit();
+      })
+    );
+    row.classList.toggle("bad", rec.s === "maint");
+    return row;
+  }
+
+  host.append(
+    el("div", { class: "egrid-bar" }, sum, groupRow),
+    sysBox,
+    listBox
+  );
+  count();
+  loadSystems();
+  return host;
+}
+
+WIDGETS.syscheck = {
+  build: syscheckBuild,
+  blank: () => ({ group: "", system: "", items: {} }),
+  filled: (v) => isObj(v) && Object.values(v.items || {}).some((x) => x?.s),
+  wide: true,
+};
