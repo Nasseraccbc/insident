@@ -141,6 +141,35 @@ export const tasks = {
   },
 };
 
+/* ─── مؤقتات مستوى الخدمة ──────────────────────────────────────────────── */
+/* شاشة المؤقتات تسأل عن اللحظة: ما الذي يوشك أن يتجاوز مهلته الآن. فهي
+   تقرأ المهام المفتوحة ومعها مواعيد سجلّها المحسوبة على الخادم. */
+
+export const sla = {
+  /** المهام التي لم تُغلق بعد، ومعها مواعيد SLA من سجلّها إن وُجد. */
+  async open() {
+    return unwrap(
+      await sb.from("tasks")
+        // للمهمة مفتاحان إلى records (سجلّها ومصدرها)، فيلزم تسمية المقصود
+        .select("*, record:records!tasks_record_id_fkey(id, state, responded_at, sla_response_due, sla_close_due, closed_at)")
+        .in("status", ["pending", "new", "assigned", "in_progress"])
+        .order("created_at", { ascending: true })
+        .limit(300)
+    );
+  },
+  /** سجلات أُغلقت — التجاوز منها يُحسب بمقارنة الإغلاق بموعده. */
+  async closed(limit = 200) {
+    return unwrap(
+      await sb.from("records")
+        .select("id, form_code, title, priority, location, assigned_to, created_at, closed_at, sla_close_due, responded_at, sla_response_due")
+        .eq("state", "closed")
+        .not("sla_close_due", "is", null)
+        .order("closed_at", { ascending: false })
+        .limit(limit)
+    );
+  },
+};
+
 /* ─── الأصول ───────────────────────────────────────────────────────────── */
 
 export const assets = {

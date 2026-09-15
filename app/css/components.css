@@ -83,6 +83,14 @@
 .stat.is-danger::before { background: var(--danger); }
 .stat.is-ok::before     { background: var(--ok); }
 
+/* حكم مقروء بجانب اللون لا باللون وحده — من لا يميّز الألوان يقرأ ✓/✕ */
+.ok-text   { color: var(--ok); font-weight: 700; }
+.late-text { color: var(--danger); font-weight: 700; }
+
+/* مرشّحان قصيران جنبًا إلى جنب — الممتدّ على عرض الشاشة يوهم بأنه حقل
+   إدخال رئيسي لا أداة تضييق */
+.sla-filters .select { max-width: 220px; }
+
 .stat-label { font-size: var(--fs-xs); color: var(--text-3); font-weight: 600; letter-spacing: .02em; }
 .stat-value { font-size: var(--fs-3xl); font-weight: 800; line-height: 1.15; margin-top: 2px; }
 .stat-note  { font-size: var(--fs-xs); color: var(--text-3); margin-top: 2px; }
