@@ -6,7 +6,7 @@
    ============================================================================ */
 
 import { tasks } from "../db.js";
-import { t, fmtStamp } from "../i18n.js";
+import { t, lang, fmtStamp } from "../i18n.js";
 import {
   el, pageHead, empty, loading, liveTimer, taskStatusBadge, priorityBadge, toast,
 } from "../ui.js";
@@ -69,18 +69,20 @@ export async function mytasksView(page, state) {
 
     const actions = el("div", { class: "task-actions" });
 
+    /* ضغطة واحدة تفتح البلاغ وتبدأ التوقيت. كانت ضغطتين — «ابدأ» ثم «افتح
+       النموذج» — والفني تحت ضغط البلاغ يضغط الأولى ويمضي، فيبقى النموذج
+       فارغًا والساعة تجري بلا تعبئة. البدء يُختم على الخادم عند الفتح. */
     if (task.status === "new" || task.status === "assigned") {
       actions.append(el("button", {
-        class: "btn btn-primary",
-        onclick: () => change(task, { status: "in_progress", started_at: new Date().toISOString() }),
-      }, "▶ " + t("ts_in_progress")));
+        class: "btn btn-primary", onclick: () => openForm(task),
+      }, "▶ " + (lang === "ar" ? "ابدأ البلاغ" : "Start request")));
     } else if (task.status === "in_progress") {
       actions.append(
         el("button", { class: "btn btn-primary", onclick: () => openForm(task) },
-          "✎ " + (task.form_code || t("navForms"))),
+          "✎ " + (lang === "ar" ? "أكمل " : "Continue ") + (task.form_code || "")),
         el("button", {
           class: "btn",
-          onclick: () => change(task, { status: "done", completed_at: new Date().toISOString() }),
+          onclick: () => change(task, { status: "done" }),
         }, "✓ " + t("ts_done"))
       );
     }

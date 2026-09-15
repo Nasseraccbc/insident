@@ -119,6 +119,12 @@ export const tasks = {
   async update(id, patch) {
     return unwrap(await sb.from("tasks").update(patch).eq("id", id).select().single());
   },
+  /** بدء التنفيذ. الوقت يختمه مشغّل القاعدة لا المتصفح. */
+  async start(id) {
+    return unwrap(
+      await sb.from("tasks").update({ status: "in_progress" }).eq("id", id).select().single()
+    );
+  },
 };
 
 /* ─── الأصول ───────────────────────────────────────────────────────────── */

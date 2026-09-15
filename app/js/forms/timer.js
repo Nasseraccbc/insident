@@ -34,6 +34,9 @@ const L = (ar, en) => (lang === "ar" ? ar : en);
    القاعدة مواعيد SLA ولا تظهر البلاغات في مؤشرات الالتزام. */
 const PRIORITY = { "طارئ": "critical", "عالي": "high", "متوسط": "medium", "منخفض": "medium" };
 
+/** التصنيف المقابل لأولوية القاعدة — لتعبئة البلاغ القادم من مهمة. */
+export const CLASS_OF = { critical: "طارئ", high: "عالي", medium: "متوسط" };
+
 /** أولوية القاعدة المقابلة لتصنيف البلاغ، أو null إن لم يُختر بعد. */
 export function priorityOf(form, data) {
   if (!form.timer) return null;
@@ -50,10 +53,10 @@ export function makeRef(d = new Date()) {
  * يختم لحظة الفتح في حقول البلاغ الفارغة — وبها يبدأ العدّ.
  * يُرجع true إن غيّر شيئًا.
  */
-export function stampOpen(form, data) {
+export function stampOpen(form, data, at) {
   const t = form.timer;
   if (!t) return false;
-  const now = new Date();
+  const now = at instanceof Date && !isNaN(at) ? at : new Date();
   const p = (n) => String(n).padStart(2, "0");
   let touched = false;
 

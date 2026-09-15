@@ -21,7 +21,7 @@ import {
   FORMS, formByCode, formName, renderSection, blankData, completion, tr,
 } from "../forms/renderer.js";
 import { photoGrid, uploadAll, loadExisting } from "../photos.js";
-import { slaPanel, stampOpen, priorityOf } from "../forms/timer.js";
+import { slaPanel, stampOpen, priorityOf, CLASS_OF } from "../forms/timer.js";
 
 const DRAFT_KEY = (code, taskId) => `sce_draft_${code}_${taskId || "new"}`;
 
@@ -97,9 +97,6 @@ async function formEditor(page, state, { form, taskId, recordId }) {
       data = blankData(form);
       const saved = readDraft(form.code, taskId);
       if (saved) Object.assign(data, saved);
-      // بلاغ جديد: تُختم لحظة الفتح في رقم البلاغ وتاريخه ووقته، ومنها
-      // يبدأ عدّ الاستجابة والإنجاز — كما كان في النظام القديم.
-      if (stampOpen(form, data)) writeDraft(form.code, taskId, data);
     }
     if (taskId) {
       const list = await tasks.list({});
@@ -110,6 +107,22 @@ async function formEditor(page, state, { form, taskId, recordId }) {
         await loadExisting(record.id, photos);
         history = await records.history(record.id).catch(() => []);
       }
+    }
+    /* فتح البلاغ هو بدء التنفيذ: تُختم لحظته على الخادم، ومنها — لا من
+       ساعة الجهاز — يبدأ عدّ الاستجابة والإنجاز. */
+    if (task && !task.started_at && task.status !== "done" && task.status !== "cancelled") {
+      task = await tasks.start(task.id).catch(() => task);
+    }
+    if (!record && form?.timer) {
+      /* البلاغ القادم من مهمة يرث تصنيفها وموقعها: المشرف صنّفه عند
+         التوزيع، فلا يُسأل الفني عنه من جديد ولا يقف العدّ بانتظاره. */
+      if (task) {
+        if (!data.cls && CLASS_OF[task.priority]) data.cls = CLASS_OF[task.priority];
+        if (!data.loc && task.location) data.loc = task.location;
+      }
+      const at = task?.started_at ? new Date(task.started_at) : new Date();
+      if (stampOpen(form, data, at)) writeDraft(form.code, taskId, data);
+      else writeDraft(form.code, taskId, data);
     }
   } catch (err) {
     host.replaceChildren(empty(t("errNet"), err.message, "⚠"));
