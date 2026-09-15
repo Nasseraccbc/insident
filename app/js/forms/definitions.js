@@ -631,7 +631,7 @@ export const FORMS=[
    {k:"rtm", l:"وقت التسجيل", t:"time", sla:"reg"},
    {k:"src", l:"مصدر البلاغ", t:"sel", o:["ممثل الهيئة","مستخدم المبنى","جولة تفتيشية","نظام إدارة التشغيل والصيانة","صيانة وقائية مجدولة"]},
    {k:"loc", l:"الموقع", t:"text"},
-   {k:"asset", l:"الأصل / النظام", t:"text"},
+   {k:"asset", l:"النظام المعني", t:"syspick"},
    {k:"cls", l:"تصنيف البلاغ", t:"sel", o:["طارئ","عالي","متوسط","منخفض"], sla:"cls"},
    {k:"desc", l:"وصف البلاغ أو العطل", t:"area", full:true}
   ]},
@@ -639,6 +639,11 @@ export const FORMS=[
    {k:"rsp", l:"وقت الاستجابة الفعلي", t:"time", sla:"resp"},
    {k:"sta", l:"وقت بدء المعالجة الفعلي", t:"time", sla:"start"},
    {k:"tech", l:"الفني المكلّف", t:"text"}
+  ]},
+  {t:"فحص معدات النظام", en:"System equipment check",
+   note:"معدات النظام المختار في «النظام المعني» تنزل هنا وحدها. لكل معدة عدد وحالة: ممتازة أو تحتاج صيانة. وإن تبيّن أن العطل في نظام آخر فبدّل «النظام المعني» في قسم تسجيل البلاغ.",
+   noteEn:"Only the equipment of the system chosen in \u00abSystem Concerned\u00bb is listed. Each item takes a count and a status: excellent or needs service. If the fault turns out to be in another system, switch it in the request section.", f:[
+   {k:"equip", l:"معدات النظام وحالتها", t:"syscheck", bind:"asset"}
   ]},
   {t:"التنفيذ", en:"Execution", f:[
    {k:"work", l:"الأعمال والإجراءات المنفذة", t:"area", full:true},
@@ -969,4 +974,11 @@ Object.assign(DICT, {
  "الملاحظات والتوصيات":"Notes and Recommendations","ملاحظات عامة":"General Notes",
  "التوصيات والإجراءات المقترحة":"Recommendations and Proposed Actions",
  "موعد الجولة القادمة":"Next Round Date"
+});
+
+/* تسميات فحص معدات النظام داخل البلاغ — WO-01 */
+Object.assign(DICT, {
+ "النظام المعني":"System Concerned",
+ "فحص معدات النظام":"System Equipment Check",
+ "معدات النظام وحالتها":"System Equipment and Condition"
 });

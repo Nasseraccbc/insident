@@ -5,7 +5,7 @@
    بلا كود جديد. وإضافة نوع حقل جديد = إدخال واحد في TYPES أدناه.
 
    الأنواع الأساسية: text · area · sel · date · time · num · rows · chkg · reg · calc
-   والودجات المركّبة تأتي من widgets.js: egrid · drinks · triparty
+   والودجات المركّبة تأتي من widgets.js: egrid · drinks · triparty · syscheck · syspick
    ============================================================================ */
 
 import { FORMS, DICT } from "./definitions.js";
@@ -216,9 +216,10 @@ for (const [name, w] of Object.entries(WIDGETS)) TYPES[name] = w.build;
 
 /* ─── تصيير حقل واحد ───────────────────────────────────────────────────── */
 
-export function renderField(field, value, onChange) {
+export function renderField(field, value, onChange, data) {
   const build = TYPES[field.t] || TYPES.text;
-  const control = build(field, value, onChange);
+  // الودجة قد تتبع حقلًا آخر (فحص المعدات يتبع النظام)، فتحتاج بيانات النموذج
+  const control = build(field, value, onChange, data);
 
   const wide = field.t === "rows" || field.t === "area" || WIDGETS[field.t]?.wide || field.full;
 
@@ -245,7 +246,12 @@ export function renderSection(sec, data, onChange, { open = true } = {}) {
   const grid = el("div", { class: "form-grid" });
 
   for (const f of sec.f || []) {
-    grid.append(renderField(f, data[f.k], (v) => { data[f.k] = v; onChange(f.k, v); }));
+    grid.append(renderField(f, data[f.k], (v) => {
+      data[f.k] = v;
+      onChange(f.k, v);
+      // حقل في قسم قد يغذّي ودجة في قسم آخر، والأقسام تُصيَّر مستقلّة
+      document.dispatchEvent(new CustomEvent("form:field", { detail: { k: f.k, v } }));
+    }, data));
   }
 
   // أقسام الاعتماد معرّفة بـ sig:true بلا مصفوفة حقول، فكانت تُصيَّر فارغة.

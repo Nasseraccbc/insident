@@ -4,6 +4,8 @@
      egrid     ٢٤ أصلًا × ١٢ نقطة فحص  → QA-02-EL
      drinks    ١٤ صنف مشروبات بكمية     → HS-01
      triparty  قائمة تحقق ثلاثية        → MR-01
+     syscheck  فحص معدات نظام بكمية وحالة → INS-01 · WO-01
+     syspick   اختيار النظام من الكتالوج  → WO-01
 
    كل ودجة تُصدَّر كواصف موحّد { build, blank, filled, wide } فيسجّلها المحرّك
    في TYPES بلا معرفة بتفاصيلها. إضافة ودجة رابعة = إدخال واحد هنا.
@@ -458,9 +460,42 @@ function groupAssets(cat) {
   return groupCache[cat];
 }
 
-function syscheckBuild(f, v, on) {
+/** النظام المخزَّن في حقل آخر (syspick) — أو null إن لم يُختر بعد. */
+function pickOf(v) {
+  return isObj(v) && v.g && v.s ? v : null;
+}
+
+function syscheckBuild(f, v, on, data) {
   const value = isObj(v) ? copy(v) : { group: "", system: "", items: {} };
   value.items ||= {};
+
+  /* الربط بحقل النظام: البلاغ يُسجَّل على نظام بعينه، فلا معنى لأن يعيد
+     الفني اختياره — تنزل معدات ذلك النظام وحدها. ويبقى له تغييرها إن
+     تبيّن أن العطل في نظام آخر. */
+  const bindKey = f.bind;
+
+  const flash = el("div", { class: "note warn small mb-4", hidden: true });
+
+  function adopt(src, explicit) {
+    if (!src || (value.group === src.g && value.system === src.s)) return false;
+    const dirty = Object.values(value.items).some((x) => x && x.s);
+    // إعادة بناء الشاشة ليست قرارًا من الفني: لا تمسّ عملًا مُدخلًا
+    if (dirty && !explicit) return false;
+    // أمّا تبديله النظام صراحةً فقرار: حالات معدات نظام لا تنتقل إلى غيره،
+    // ومسحها صامتًا خيانة — تُمسح ويُقال له.
+    if (dirty) {
+      flash.textContent = ar(
+        "بُدِّل النظام — أُفرغت حالات معدات النظام السابق.",
+        "System switched — the previous system's equipment statuses were cleared.");
+      flash.hidden = false;
+    }
+    value.group = src.g;
+    value.system = src.s;
+    value.items = {};
+    return true;
+  }
+
+  if (bindKey) adopt(pickOf(data && data[bindKey]));
 
   const host = el("div", { class: "sysc" });
   const sysBox = el("div", { class: "sysc-systems" });
@@ -497,7 +532,16 @@ function syscheckBuild(f, v, on) {
   ));
 
   function loadSystems() {
-    if (!value.group) { sysBox.replaceChildren(); listBox.replaceChildren(); return; }
+    if (!value.group) {
+      sysBox.replaceChildren();
+      listBox.replaceChildren(bindKey
+        ? el("div", { class: "viz-empty small muted", text: ar(
+            "اختر «النظام المعني» في قسم تسجيل البلاغ لتظهر معداته هنا.",
+            "Pick the system concerned in the request section to list its equipment here.") })
+        : el("div", { class: "viz-empty small muted", text: ar(
+            "اختر المجموعة ثم النظام", "Pick a group then a system") }));
+      return;
+    }
     sysBox.replaceChildren(el("div", { class: "dim small", text: ar("جارٍ التحميل…", "Loading…") }));
     groupAssets(value.group).then((rows) => {
       const systems = [];
@@ -506,11 +550,15 @@ function syscheckBuild(f, v, on) {
         if (!s) systems.push((s = { key: r.system_key, ar: r.system_ar, en: r.system_en, rows: [] }));
         s.rows.push(r);
       }
-      sysBox.replaceChildren(
-        el("div", { class: "field" },
-          el("label", { text: ar("النظام", "System") }),
-          selectSystems(systems))
-      );
+      const cur = systems.find((x) => x.key === value.system);
+      sysBox.replaceChildren(bindKey
+        // مفتاحان لشيء واحد يفترقان: النظام مصدره حقل البلاغ، وهنا يُعرض فقط
+        ? el("div", { class: "sysc-head small" },
+            el("span", { class: "dim", text: ar("معدات نظام:", "Equipment of:") }),
+            el("b", { text: cur ? ar(cur.ar, cur.en) : ar("— لم يُحدَّد —", "— not set —") }))
+        : el("div", { class: "field" },
+            el("label", { text: ar("النظام", "System") }),
+            selectSystems(systems)));
       drawList(systems);
     }).catch((err) => sysBox.replaceChildren(
       el("div", { class: "note danger small", text: (err.message || "") })));
@@ -575,14 +623,84 @@ function syscheckBuild(f, v, on) {
   }
 
   host.append(
-    el("div", { class: "egrid-bar" }, sum, groupRow),
+    flash,
+    // المربوطة لا تعرض شريط المجموعات: مصدر النظام حقل البلاغ وحده
+    el("div", { class: "egrid-bar" }, sum, bindKey ? null : groupRow),
     sysBox,
     listBox
   );
+
+  if (bindKey) {
+    const follow = (e) => {
+      // الشاشة تُعاد بناؤها كثيرًا؛ بلا هذا يبقى المستمع معلّقًا على عقدة ميتة
+      if (!host.isConnected) return document.removeEventListener("form:field", follow);
+      if (e.detail?.k !== bindKey || !adopt(pickOf(e.detail.v), true)) return;
+      groupRow.querySelectorAll(".chip").forEach((b, i) =>
+        b.setAttribute("aria-pressed", String(GROUPS[i].k === value.group)));
+      emit();
+      loadSystems();
+    };
+    document.addEventListener("form:field", follow);
+  }
+
   count();
   loadSystems();
   return host;
 }
+
+/* ============================================================================
+   ٥ · syspick — اختيار النظام عند تسجيل البلاغ
+   قائمة واحدة مجمَّعة بالمجموعات، مصدرها جدول الأصول لا ثابت في الكود.
+   قيمتها { g, s, ar, en } لأن نصًّا حرًّا لا تُبنى عليه قائمة معدات.
+   ============================================================================ */
+
+function syspickBuild(f, v, on) {
+  const cur = isObj(v) ? copy(v) : {};
+  const legacy = !isObj(v) && String(v ?? "").trim();   // نصّ قديم من قبل القوائم
+
+  const sel = el("select", { class: "select" });
+  sel.append(el("option", { value: "" }, "— " + ar("اختر النظام", "Select a system") + " —"));
+  if (legacy) sel.append(el("option", { value: "?", selected: true }, legacy));
+  sel.append(el("option", { value: "…", disabled: true }, ar("جارٍ التحميل…", "Loading…")));
+
+  Promise.all(GROUPS.map((g) => groupAssets(g.k).then((rows) => [g, rows])))
+    .then((pairs) => {
+      sel.replaceChildren(
+        el("option", { value: "" }, "— " + ar("اختر النظام", "Select a system") + " —")
+      );
+      const index = {};
+      for (const [g, rows] of pairs) {
+        const og = el("optgroup", { label: ar(g.ar, g.en) });
+        const seen = [];
+        for (const r of rows) {
+          if (seen.includes(r.system_key)) continue;
+          seen.push(r.system_key);
+          const key = g.k + "|" + r.system_key;
+          index[key] = { g: g.k, s: r.system_key, ar: r.system_ar, en: r.system_en };
+          const n = rows.filter((x) => x.system_key === r.system_key).length;
+          og.append(el("option", { value: key, selected: cur.g === g.k && cur.s === r.system_key },
+            `${ar(r.system_ar, r.system_en)} (${n})`));
+        }
+        sel.append(og);
+      }
+      if (legacy && !sel.value) {
+        sel.append(el("option", { value: "?", selected: true }, legacy));
+      }
+      sel.onchange = (e) => on(index[e.target.value] ? copy(index[e.target.value]) : {});
+    })
+    .catch((err) => {
+      sel.replaceChildren(el("option", { value: "" }, err.message || ar("تعذّر التحميل", "Load failed")));
+    });
+
+  return sel;
+}
+
+WIDGETS.syspick = {
+  build: syspickBuild,
+  blank: () => ({}),
+  filled: (v) => (isObj(v) ? !!v.s : !!String(v ?? "").trim()),
+  wide: false,
+};
 
 WIDGETS.syscheck = {
   build: syscheckBuild,

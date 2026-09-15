@@ -261,8 +261,10 @@ async function formEditor(page, state, { form, taskId, recordId }) {
         }
         first.prepend(el("div", { class: "note small mb-4",
           text: lang === "ar"
-            ? "بيانات التسجيل سجّلها مشرف الموقع عند إسناد البلاغ — للعرض فقط."
-            : "Registration data was entered by the site supervisor — read only." }));
+            ? "بيانات التسجيل سجّلها مشرف الموقع عند إسناد البلاغ — للعرض فقط، "
+              + "عدا «النظام المعني» فهو من تحديدك، وعليه تنزل قائمة المعدات."
+            : "Registration data was entered by the site supervisor — read only, "
+              + "except \u00abSystem Concerned\u00bb which you set; the equipment list follows it." }));
       }
     }
 

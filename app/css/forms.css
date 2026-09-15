@@ -388,6 +388,13 @@
 /* ─── جولة فحص الأنظمة ─────────────────────────────────────────────────── */
 
 .sysc-systems { margin: var(--sp-4) 0; max-width: 420px; }
+/* النظام مربوطًا بحقل البلاغ: يُعرض ولا يُختار من هنا */
+.sysc-head {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3); margin-bottom: var(--sp-1);
+  background: var(--surface-3); border: 1px solid var(--border);
+  border-radius: var(--r); max-width: 420px;
+}
 .sysc-list { display: grid; gap: var(--sp-2); grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 
 .sysc-item {
