@@ -28,13 +28,17 @@
   height: var(--topbar-h); flex: none;
   border-bottom: 1px solid rgba(255,255,255,.07);
 }
+/* الشعار مرسوم على أرضية بيضاء، والشريط الجانبي كحلي داكن والوضع الليلي
+   أدكن — فيُحمل على لوحة بيضاء في كل الحالات بدل شفافية مقصوصة تترك
+   هالة رمادية حول الحواف المنعّمة. */
 .brand-mark {
-  width: 32px; height: 32px; flex: none;
-  border-radius: 9px;
-  background: linear-gradient(135deg, var(--am-300), var(--am-500));
-  color: var(--nv-900);
-  display: grid; place-items: center;
-  font-weight: 900; font-size: .8rem;
+  /* اللوحة بنسبة العلامة نفسها (٣:٥) لا مربّعة: المربّع يترك بياضًا على
+     الجانبين يجعلها تبدو أصغر ممّا هي */
+  width: 26px; height: 38px; flex: none;
+  border-radius: var(--r-sm);
+  background: #fff;
+  padding: 2px;
+  object-fit: contain;
 }
 .brand-text { min-width: 0; }
 .brand-name { color: #fff; font-weight: 800; font-size: var(--fs-base); line-height: 1.2; }
@@ -190,13 +194,12 @@
 }
 .login-brand { text-align: center; margin-bottom: var(--sp-6); }
 .login-mark {
-  width: 56px; height: 56px; margin: 0 auto var(--sp-4);
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--nv-500), var(--nv-700));
-  color: var(--accent);
-  display: grid; place-items: center;
-  font-size: 1.3rem; font-weight: 900;
-  box-shadow: var(--sh);
+  display: block;
+  width: 186px; height: auto; max-width: 72%;
+  margin: 0 auto var(--sp-5);
+  background: #fff;
+  border-radius: var(--r-lg);
+  padding: var(--sp-2) var(--sp-3);
 }
 
 /* ─── لوحة الفني: الجوّال أولًا ────────────────────────────────────────── */

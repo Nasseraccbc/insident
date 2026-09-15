@@ -68,7 +68,8 @@ export function renderLogin() {
     el("div", { class: "login-wrap" },
       el("div", { class: "login-card" },
         el("div", { class: "login-brand" },
-          el("div", { class: "login-mark", text: "SCE" }),
+          el("img", { class: "login-mark", src: "img/logo.png",
+                      alt: "شركة قوة الدعم للخدمات المساندة" }),
           el("h2", { text: t("appName") }),
           el("div", { class: "small dim mt-2", text: t("org") })
         ),
@@ -112,7 +113,8 @@ function buildSidebar() {
 
   return el("aside", { class: "sidebar", id: "sidebar" },
     el("div", { class: "brand" },
-      el("div", { class: "brand-mark", text: "SCE" }),
+      el("img", { class: "brand-mark", src: "img/mark.png",
+                  alt: "شركة قوة الدعم للخدمات المساندة" }),
       el("div", { class: "brand-text" },
         el("div", { class: "brand-name", text: t("appName") }),
         el("div", { class: "brand-sub", text: "SCE-2026-0119" })
