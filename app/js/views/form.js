@@ -23,6 +23,8 @@ import {
 import { photoGrid, uploadAll, loadExisting } from "../photos.js";
 import { slaPanel, stampOpen, priorityOf, CLASS_OF } from "../forms/timer.js";
 
+const L2 = (ar, en) => (lang === "ar" ? ar : en);
+
 const DRAFT_KEY = (code, taskId) => `sce_draft_${code}_${taskId || "new"}`;
 
 export async function formView(page, state) {
@@ -226,6 +228,10 @@ async function formEditor(page, state, { form, taskId, recordId }) {
     }
 
     (form.secs || []).forEach((sec, i) => {
+      /* صناديق التوقيع اليدوية بقايا نموذج ورقي: تطلب اسمًا وتاريخًا
+         وقرارًا يكتبها أي أحد بلا أثر. والاعتماد الحقيقي في هذا النظام
+         قرار مسجَّل باسم صاحبه ووقته. عرض الاثنين يجعل للاعتماد مصدرين. */
+      if (sec.sig) { body.append(approvalCard(record)); return; }
       // قسم الودجة المركّبة هو لبّ النموذج، فطيّه يخفي العمل الحقيقي
       body.append(renderSection(sec, data, onFieldChange,
         { open: i < 2 || isWidgetSection(sec) }));
@@ -317,8 +323,12 @@ async function formEditor(page, state, { form, taskId, recordId }) {
 
       if (submit) {
         record = await records.update(record.id, { state: "sent" });
-        // وقت الإنجاز يختمه مشغّل القاعدة لا المتصفح
-        if (task) await tasks.update(task.id, { status: "done" });
+        /* لا تُنهى المهمة هنا: الإرسال ليس إنجازًا بل طلب اعتماد. المهمة
+           تُنجَز حين يعتمد المشرف، وتعود للعمل إن أرجعها — ويتكفّل بذلك
+           review_record في القاعدة. */
+        if (task && task.status !== "in_progress") {
+          await tasks.update(task.id, { status: "in_progress" });
+        }
       }
 
       clearDraft(form.code, taskId);
@@ -345,6 +355,33 @@ async function formEditor(page, state, { form, taskId, recordId }) {
     }
   };
 }
+
+/* ─── حالة الاعتماد بدل صندوق التوقيع الورقي ───────────────────────── */
+
+  function approvalCard(record) {
+    const st = record?.state;
+    const map = {
+      undefined: [L2("لم يُحفظ بعد", "Not saved yet"),
+                  L2("بعد الحفظ والإرسال يصل البلاغ إلى مشرف الموقع لاعتماده.",
+                     "Once saved and submitted the request reaches the site supervisor.")],
+      draft:  [L2("مسودة — لم تُرسل", "Draft — not submitted"),
+               L2("اضغط «إرسال» ليصل البلاغ إلى مشرف الموقع.",
+                  "Press Submit to send the request to the site supervisor.")],
+      sent:   [L2("بانتظار اعتماد مشرف الموقع", "Awaiting supervisor approval"),
+               L2("أُرسل ولم يُبتّ فيه بعد. يعتمده المشرف أو يُرجعه بملاحظة.",
+                  "Submitted and pending. The supervisor approves it or returns it with a note.")],
+      closed: [L2("معتمد ومغلق", "Approved and closed"),
+               L2("اعتمده مشرف الموقع، وصار وثيقة لا تُعدَّل.",
+                  "Approved by the site supervisor; now an uneditable document.")],
+    };
+    const [title, sub] = map[st] || map.undefined;
+    return el("section", { class: "card apv-card" + (st === "closed" ? " ok" : st === "sent" ? " wait" : "") },
+      el("div", { class: "card-body" },
+        el("div", { class: "apv-t", text: title }),
+        el("div", { class: "small muted mt-2", text: sub })
+      )
+    );
+  }
 
 /* ─── خطّ زمن الاعتماد ─────────────────────────────────────────────────── */
 /* من نقل السجل ومتى وبأي ملاحظة — هذا هو الدليل عند الخلاف بعد أشهر. */
@@ -394,8 +431,15 @@ function timeline(history, people) {
 /* ─── مساعدات ──────────────────────────────────────────────────────────── */
 
 /** يبحث عن أول حقل يصلح عنوانًا للسجل في الجداول. */
+/* الوصف قبل الرقم: المشرف في شاشة الاعتمادات يقرأ عنوانًا يفهم منه ما
+   البلاغ. «REP-20260915-0831» رقم لا يقول شيئًا، والرقم محفوظ في النموذج
+   ويظهر في السجل على أي حال. */
 function pickTitle(form, data) {
-  for (const k of ["no", "wo", "ref", "topic", "title", "site", "loc"]) {
+  for (const k of ["desc", "topic", "title", "work", "site", "loc"]) {
+    const v = data[k];
+    if (v && String(v).trim()) return String(v).trim().replace(/\s+/g, " ").slice(0, 90);
+  }
+  for (const k of ["no", "wo", "ref"]) {
     const v = data[k];
     if (v && String(v).trim()) return String(v).trim().slice(0, 120);
   }

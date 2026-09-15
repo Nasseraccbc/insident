@@ -321,3 +321,11 @@ table.tbl tbody tr:last-child td { border-bottom: none; }
   border-inline-start: 2px solid var(--border-str);
   padding-inline-start: 9px; margin: 4px 0;
 }
+
+/* ─── حالة الاعتماد داخل النموذج ───────────────────────────────────────── */
+.apv-card { border-inline-start: 4px solid var(--border-str); }
+.apv-card.wait { border-inline-start-color: var(--warn); background: var(--warn-bg); }
+.apv-card.ok   { border-inline-start-color: var(--ok);   background: var(--ok-bg); }
+.apv-t { font-weight: 800; font-size: var(--fs-md); }
+.apv-card.wait .apv-t { color: var(--warn); }
+.apv-card.ok   .apv-t { color: var(--ok); }
