@@ -115,6 +115,19 @@ async function formEditor(page, state, { form, taskId, recordId }) {
     if (task && !task.started_at && task.status !== "done" && task.status !== "cancelled") {
       task = await tasks.start(task.id).catch(() => task);
     }
+    /* طلب الموظف يُملأ في حقول النموذج ذاتها: الباريستا يفتح HS-01 فيجد
+       الأصناف والكميات وملاحظات التحضير مكتوبة — لا يعيد قراءتها من نصّ
+       حرّ ولا يؤوّلها. وما كتبه المنفّذ أو حفظته المسودّة لا يُدهس. */
+    if (!record && task?.request && typeof task.request === "object") {
+      const blank = (v) =>
+        v === undefined || v === null || v === "" ||
+        (Array.isArray(v) && !v.length) ||
+        (typeof v === "object" && !Array.isArray(v) && !Object.keys(v).length);
+      for (const [k, v] of Object.entries(task.request)) {
+        if (!blank(v) && blank(data[k])) data[k] = v;
+      }
+    }
+
     if (!record && form?.timer) {
       /* البلاغ القادم من مهمة يرث تصنيفها وموقعها: المشرف صنّفه عند
          التوزيع، فلا يُسأل الفني عنه من جديد ولا يقف العدّ بانتظاره. */

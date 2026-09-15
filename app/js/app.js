@@ -11,6 +11,7 @@ import { approvalsView } from "./views/approvals.js";
 import { recordsView } from "./views/records.js";
 import { slaView } from "./views/sla.js";
 import { risksView } from "./views/risks.js";
+import { requestView, myRequestsView } from "./views/request.js";
 
 registerView("mytasks", mytasksView);
 registerView("tasks", tasksView);
@@ -23,6 +24,11 @@ registerView("approvals", approvalsView);
 registerView("records", recordsView);
 registerView("sla", slaView);
 registerView("risks", risksView);
+
+// الموظف صاحب حاجة لا منفّذ: شاشتا طلب وشاشة متابعة
+registerView("requests", myRequestsView);
+registerView("hospitality", requestView("hospitality"));
+registerView("room", requestView("room"));
 
 // الشاشات غير المسجّلة تعرض "قيد الإنشاء" — التنقّل يعمل من الآن
 // وتُبنى الشاشات على دفعات دون كسر النظام.

@@ -30,6 +30,8 @@ USERS = [
      "role": "supervisor",  "specialty": None,         "note": "مشرف تشغيلي — المهام والتوزيع"},
     {"email": "test@sce-ops.local",   "full_name": "test",  "full_name_en": "test",
      "role": "technician",  "specialty": "electrical", "note": "فني — حساب تجريبي"},
+    {"email": "mohammed@sce-ops.local", "full_name": "محمد", "full_name_en": "Mohammed",
+     "role": "employee",    "specialty": None,         "note": "موظف الهيئة — طلبات الضيافة والقاعات"},
 ]
 
 

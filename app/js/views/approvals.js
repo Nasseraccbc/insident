@@ -62,7 +62,7 @@ export async function approvalsView(page, state) {
     if (pending.length) {
       frag.append(
         el("div", { class: "section-title",
-                    text: L("بلاغات من الميدان", "Field requests") + " · " + pending.length }),
+                    text: L("طلبات وبلاغات جديدة", "New requests") + " · " + pending.length }),
         el("div", { class: "field-list" }, ...pending.map(reportCard))
       );
     }
@@ -84,6 +84,8 @@ export async function approvalsView(page, state) {
         el("div", { class: "grow" },
           el("div", { class: "row wrap", style: "gap:6px;margin-bottom:6px" },
             priorityBadge(r.priority),
+            // رمز النموذج يفرّق بلاغ عطل عن طلب ضيافة قبل قراءة العنوان
+            r.form_code ? el("span", { class: "form-code", text: r.form_code }) : null,
             r.specialty ? el("span", { class: "badge", text: t("sp_" + r.specialty) }) : null
           ),
           el("div", { class: "task-title", text: r.title })
@@ -95,7 +97,9 @@ export async function approvalsView(page, state) {
         el("span", { text: "◔ " + fmtStamp(r.created_at) }),
         el("span", { text: "✎ " + (people[r.created_by] || "—") })
       ),
-      r.description ? el("p", { class: "small muted mt-2", text: r.description }) : null,
+      r.description
+        ? el("p", { class: "small muted mt-2", style: "white-space:pre-line", text: r.description })
+        : null,
       el("div", { class: "task-actions" },
         el("button", { class: "btn btn-ghost", onclick: () => decideReport(r, "reject"),
                        text: L("رفض بسبب", "Reject with reason") }),
