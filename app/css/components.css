@@ -134,7 +134,7 @@ table.tbl tbody tr:last-child td { border-bottom: none; }
 
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field > label {
-  font-size: var(--fs-xs); font-weight: 700; color: var(--text-2);
+  font-size: .85rem; font-weight: bold; color: var(--brand); margin-bottom: 1px;
 }
 .field .req { color: var(--danger); margin-inline-start: 2px; }
 .field .hint { font-size: var(--fs-xs); color: var(--text-3); }
@@ -142,8 +142,9 @@ table.tbl tbody tr:last-child td { border-bottom: none; }
 
 .input, .select, .textarea {
   width: 100%;
-  padding: 9px 12px;
-  border: 1px solid var(--border-str);
+  padding: 10px;
+  font-size: .95rem;
+  border: 1px solid var(--border);
   border-radius: var(--r);
   background: var(--surface);
   color: var(--text);
@@ -155,8 +156,9 @@ table.tbl tbody tr:last-child td { border-bottom: none; }
   border-color: var(--brand);
   box-shadow: 0 0 0 3px var(--brand-soft);
 }
-.input:disabled, .select:disabled, .textarea:disabled {
-  background: var(--surface-3); color: var(--text-3); cursor: not-allowed;
+.input:disabled, .select:disabled, .textarea:disabled,
+.input[readonly], .textarea[readonly] {
+  background: var(--n-100); color: var(--text-2); cursor: not-allowed;
 }
 .input.invalid, .select.invalid, .textarea.invalid { border-color: var(--danger); }
 .textarea { min-height: 88px; resize: vertical; }

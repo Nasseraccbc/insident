@@ -138,7 +138,7 @@ function buildTopbar() {
       el("input", { type: "search", placeholder: t("search"), id: "globalSearch" })
     ),
     el("div", { class: "grow" }),
-    el("button", { class: "btn btn-ghost btn-sm", onclick: () => { toggleLang(); render(); },
+    el("button", { class: "btn btn-primary btn-sm lang-btn", onclick: () => { toggleLang(); render(); },
                    title: "language", text: t("lang") }),
     el("button", { class: "btn btn-ghost btn-icon", onclick: toggleTheme,
                    title: t("theme"), text: "◐" }),

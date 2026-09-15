@@ -134,14 +134,31 @@
 /* ─── المحتوى ──────────────────────────────────────────────────────────── */
 
 .main { grid-area: main; padding: var(--sp-6); min-width: 0; }
-.page { max-width: 1400px; margin: 0 auto; }
+/* غلاف واحد أبيض بحافة علوية كحلية 8px وزوايا 12px وظلّ خفيف — هو إطار
+   النموذج القديم نفسه، والمحتوى كلّه يسكن داخله كما كان. */
+.page {
+  max-width: 1400px; margin: 0 auto;
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  border-top: 8px solid var(--brand);
+  box-shadow: 0 4px 15px rgba(15, 31, 43, .08);
+  padding: var(--sp-6);
+}
 
 .page-head {
   display: flex; align-items: flex-start; justify-content: space-between;
   gap: var(--sp-4); flex-wrap: wrap;
   margin-bottom: var(--sp-6);
 }
-.page-title { font-size: var(--fs-2xl); font-weight: 800; line-height: 1.2; }
+/* الشريط يأخذ الصفّ كاملًا كما في النموذج القديم، والأزرار تنزل تحته */
+.page-head > div:first-child { flex: 1 1 100%; }
+.page-title {
+  background: var(--brand); color: #fff;
+  padding: 16px; border-radius: var(--r-lg);
+  text-align: center;
+  font-size: 1.3rem; font-weight: bold; line-height: 1.3;
+}
+.page-sub, .crumbs { text-align: center; }
 .page-sub { color: var(--text-3); font-size: var(--fs-sm); margin-top: 2px; }
 .crumbs { font-size: var(--fs-xs); color: var(--text-3); margin-bottom: 6px; }
 .crumbs span + span::before { content: "‹"; margin: 0 6px; opacity: .6; }
