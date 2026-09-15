@@ -124,9 +124,11 @@ async function formEditor(page, state, { form, taskId, recordId }) {
   const pctText = el("span", { class: "tiny dim" });
   const bar = el("div", { class: "bar", style: "width:140px" }, pct);
 
-  const saveBtn = el("button", { class: "btn btn-primary", onclick: () => save(false) },
+  // الكحلي للإجراء الأساسي كما في التصميم القديم، والثانوي محايد بإطار.
+  // الكهرماني يبقى للتنبيه والشارات لا لزرّ يُضغط كل يوم.
+  const saveBtn = el("button", { class: "btn", onclick: () => save(false) },
     "💾 " + t("save"));
-  const submitBtn = el("button", { class: "btn btn-accent", onclick: () => save(true) },
+  const submitBtn = el("button", { class: "btn btn-primary", onclick: () => save(true) },
     "✓ " + t("submit"));
 
   page.insertBefore(

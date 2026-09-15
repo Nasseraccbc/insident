@@ -30,7 +30,7 @@
 [data-theme="dark"] .btn-primary { color: var(--n-900); }
 
 .btn-accent {
-  background: var(--accent); border-color: var(--accent); color: var(--g-900);
+  background: var(--accent); border-color: var(--accent); color: var(--nv-900);
 }
 .btn-accent:hover:not(:disabled) { filter: brightness(.94); }
 
@@ -102,7 +102,7 @@
 .badge-warn   { background: var(--warn-bg);   color: var(--warn);   border-color: var(--warn-br); }
 .badge-danger { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-br); }
 .badge-info   { background: var(--info-bg);   color: var(--info);   border-color: var(--info-br); }
-.badge-brand  { background: var(--brand-soft); color: var(--brand); border-color: var(--g-200); }
+.badge-brand  { background: var(--brand-soft); color: var(--brand); border-color: var(--nv-200); }
 
 .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
 
@@ -233,7 +233,7 @@ table.tbl tbody tr:last-child td { border-bottom: none; }
 
 .modal-back {
   position: fixed; inset: 0; z-index: 250;
-  background: rgba(9, 28, 17, .5);
+  background: rgba(8, 20, 34, .5);
   backdrop-filter: blur(2px);
   display: flex; align-items: center; justify-content: center;
   padding: var(--sp-4);

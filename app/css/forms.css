@@ -24,11 +24,11 @@
   display: inline-block;
   font-family: var(--mono); font-size: var(--fs-xs); font-weight: 800;
   color: var(--brand); background: var(--brand-soft);
-  border: 1px solid var(--g-200);
+  border: 1px solid var(--nv-200);
   padding: 2px 8px; border-radius: var(--r-sm);
   margin-bottom: var(--sp-2);
 }
-[data-theme="dark"] .form-code { border-color: var(--g-700); }
+[data-theme="dark"] .form-code { border-color: var(--nv-700); }
 .form-name { font-weight: 700; line-height: 1.35; margin-bottom: 4px; }
 
 /* ─── أقسام النموذج ────────────────────────────────────────────────────── */
@@ -41,12 +41,16 @@
   box-shadow: var(--sh-sm);
 }
 
+/* رأس القسم كما في التصميم القديم: أرضية باهتة ونصّ بلون الهوية وشريط
+   جانبي 5px منه — هو أبرز علامة يعرفها المستخدم من النظام السابق. */
 .sec-head {
   display: flex; align-items: center; gap: var(--sp-3);
   width: 100%;
   padding: var(--sp-4) var(--sp-5);
-  background: var(--surface-2);
+  background: var(--surface-3);
   border-bottom: 1px solid var(--border);
+  border-inline-start: 5px solid var(--brand);
+  color: var(--brand);
   font-weight: 700; font-size: var(--fs-base);
   text-align: start;
   transition: background var(--t-fast);
@@ -198,7 +202,7 @@
 .chip[aria-pressed="true"] {
   background: var(--brand); border-color: var(--brand); color: #fff;
 }
-[data-theme="dark"] .chip[aria-pressed="true"] { color: var(--g-900); }
+[data-theme="dark"] .chip[aria-pressed="true"] { color: var(--nv-900); }
 
 /* ─── الاختيار المجزّأ: سليم · عطل · لا ينطبق ──────────────────────────── */
 /* ثلاثة أزرار ملتصقة بدل قائمة منسدلة: نقرة واحدة بدل ثلاث، و٢٨٨ خانة
