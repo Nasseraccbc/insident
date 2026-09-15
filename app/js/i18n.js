@@ -49,7 +49,7 @@ const AR = {
   /* كل حالة تسمّي ما ينتظره العمل لا مجرّد موضعه: «جديدة» و«مسندة» تصفان
      زمنًا لا عائقًا، فلا يعرف المشرف أهو المتأخّر أم الفني. */
   ts_pending: "بانتظار الاعتماد",
-  ts_new: "غير مسندة", ts_assigned: "بانتظار البدء", ts_in_progress: "قيد التنفيذ",
+  ts_new: "غير مسندة", ts_assigned: "معلّقة", ts_in_progress: "قيد التنفيذ",
   ts_done: "منجزة", ts_cancelled: "ملغاة",
 
   /* المؤشرات */
@@ -104,7 +104,7 @@ const EN = {
   pr_critical: "Critical", pr_high: "High", pr_medium: "Medium",
 
   ts_pending: "Awaiting approval",
-  ts_new: "Unassigned", ts_assigned: "Awaiting start", ts_in_progress: "In progress",
+  ts_new: "Unassigned", ts_assigned: "On hold", ts_in_progress: "In progress",
   ts_done: "Done", ts_cancelled: "Cancelled",
 
   kpiOpen: "Open orders", kpiClosed: "Closed", kpiSla: "SLA compliance",
