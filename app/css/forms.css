@@ -382,3 +382,5 @@
 .sla-n { font-size: 11px; color: var(--text-3); }
 .sla-box.frozen { opacity: .7; }
 .sla-box.frozen .sla-v::after { content: " ⏹"; font-size: .55em; vertical-align: middle; }
+.sla-btn { margin-top: 8px; width: 100%; min-height: 34px; }
+.sla-box.run .sla-btn:hover, .sla-box.warn .sla-btn:hover { border-color: var(--brand); color: var(--brand); }

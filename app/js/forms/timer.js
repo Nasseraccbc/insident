@@ -97,7 +97,7 @@ const fmtTarget = (min) =>
  * لوحة المؤقّت. تُرجع { node, stop } — الإيقاف مسؤولية الشاشة وإلا بقي
  * المؤقّت يعمل بعد مغادرتها ويستهلك بطارية الجوّال.
  */
-export function slaPanel(form, data, { stoppedAt } = {}) {
+export function slaPanel(form, data, { stoppedAt, onStamp } = {}) {
   const node = el("div", { class: "sla-card" });
   let timerId = null;
   const frozen = stoppedAt ? new Date(stoppedAt).getTime() : null;
@@ -138,13 +138,27 @@ export function slaPanel(form, data, { stoppedAt } = {}) {
         );
       }
 
+      /* زرّ يختم اللحظة بدل أن يكتبها الفني بيده: هو في الميدان وربما
+         بقفاز، وكتابة الوقت يدويًا تُغري بالتقريب أو التزوير اللاحق. */
+      const stampBtn = onStamp && !frozen
+        ? el("button", {
+            class: "btn btn-sm sla-btn", type: "button",
+            onclick: () => {
+              const n = new Date();
+              const p2 = (x) => String(x).padStart(2, "0");
+              onStamp(st.field, `${p2(n.getHours())}:${p2(n.getMinutes())}`);
+            },
+          }, L("سجّل الآن", "Stamp now"))
+        : null;
+
       /* مهلة «فورًا» صفر دقيقة، فعدّها التنازلي يبدأ متأخرًا من اللحظة
          الأولى ويُنذر بلا سبب. تُعرض مطلبًا قائمًا لا تأخيرًا. */
       if (min === 0) {
         return el("div", { class: "sla-box warn" },
           el("div", { class: "sla-l", text: lang === "ar" ? st.l : st.en || st.l }),
           el("div", { class: "sla-v", text: L("فورًا", "Immediate") }),
-          el("div", { class: "sla-n", text: L("ابدأ فور الاستجابة", "Start as soon as you respond") })
+          el("div", { class: "sla-n", text: L("ابدأ فور الاستجابة", "Start as soon as you respond") }),
+          stampBtn
         );
       }
 
@@ -155,7 +169,8 @@ export function slaPanel(form, data, { stoppedAt } = {}) {
         el("div", { class: "sla-v mono", text: fmtLeft(left) }),
         el("div", { class: "sla-n",
           text: frozen ? L("توقّف عند الإرسال", "stopped at submission")
-                       : (left < 0 ? L("تأخّر عن ", "over by ") : L("متبقٍ من ", "left of ")) + fmtTarget(min) })
+                       : (left < 0 ? L("تأخّر عن ", "over by ") : L("متبقٍ من ", "left of ")) + fmtTarget(min) }),
+        stampBtn
       );
     });
 

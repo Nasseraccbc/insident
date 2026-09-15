@@ -217,7 +217,10 @@ async function formEditor(page, state, { form, taskId, recordId }) {
       const stoppedAt = record && record.state !== "draft"
         ? record.updated_at
         : task?.status === "done" ? task.completed_at : null;
-      sla = slaPanel(form, data, { stoppedAt });
+      sla = slaPanel(form, data, {
+        stoppedAt,
+        onStamp: (k, v) => { data[k] = v; onFieldChange(); build(); },
+      });
       body.append(sla.node);
     }
 
