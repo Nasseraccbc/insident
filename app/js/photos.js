@@ -53,7 +53,7 @@ function fmtSize(n) {
    الرفع الفعلي يقع عند حفظ السجل لأننا نحتاج record_id في المسار.
 */
 
-export function photoSlot(kind, store, onChange) {
+export function photoSlot(kind, store, onChange, ctx) {
   const box = el("div", { class: "photo-slot" });
 
   const input = el("input", {
@@ -107,10 +107,31 @@ export function photoSlot(kind, store, onChange) {
     }
   }
 
+  /* الصورة المرفوعة تُحذف من المخزن لا من الشاشة وحدها. كان الزرّ يزيلها
+     من العرض بينما تبقى في السجل، فيُعيدها أول تحديث — والفني الذي حذف
+     لقطة خاطئة يظنّها ذهبت وهي عند المشرف. */
   const clearBtn = el("button", {
     class: "btn btn-ghost btn-sm", type: "button",
-    onclick: () => {
-      if (store[kind]?.url?.startsWith("blob:")) URL.revokeObjectURL(store[kind].url);
+    onclick: async () => {
+      const cur = store[kind];
+      if (!cur) return;
+      const recordId = ctx?.recordId?.();
+
+      if (cur.uploaded && recordId) {
+        clearBtn.disabled = true;
+        try {
+          await files.dropKind(recordId, kind);
+        } catch (err) {
+          // لا تُمحى من الشاشة ما دامت باقية في السجل: الكذبة أسوأ من الفشل
+          toast((lang === "ar" ? "تعذّر حذف الصورة: " : "Could not delete: ")
+                + (err.message || ""), "danger", 6000);
+          clearBtn.disabled = false;
+          return;
+        }
+        clearBtn.disabled = false;
+      }
+
+      if (cur.url?.startsWith("blob:")) URL.revokeObjectURL(cur.url);
       delete store[kind];
       draw();
       onChange?.();
@@ -130,10 +151,11 @@ export function photoSlot(kind, store, onChange) {
   return box;
 }
 
-/** الخانات الثلاث. */
-export function photoGrid(store, onChange) {
+/** الخانات الثلاث. ctx.recordId دالّة لا قيمة: السجل يُنشأ عند أول حفظ،
+    فالمعرّف غير موجود لحظة بناء الشاشة. */
+export function photoGrid(store, onChange, ctx) {
   return el("div", { class: "photo-grid" },
-    ...KINDS.map((k) => photoSlot(k, store, onChange))
+    ...KINDS.map((k) => photoSlot(k, store, onChange, ctx))
   );
 }
 
@@ -154,6 +176,9 @@ export async function uploadAll(store, { recordId, userId }) {
     const path = `records/${recordId}/${kind}-${Date.now()}.jpg`;
     try {
       await files.upload(path, item.blob, "image/jpeg");
+      // الاستبدال يأخذ مسارًا جديدًا (فيه الطابع الزمني)، فبلا هذا يتراكم
+      // صفّان للنوع ذاته وملفّان، ويصير المعروض رهن ترتيب القراءة
+      await files.dropKind(recordId, kind);
       await files.record({
         record_id: recordId,
         kind,

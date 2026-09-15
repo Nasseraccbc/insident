@@ -243,7 +243,8 @@ async function formEditor(page, state, { form, taskId, recordId }) {
         el("div", { class: "sec-head static" },
           el("span", { class: "grow", text: lang === "ar" ? "الصور والتوثيق" : "Photos & evidence" })
         ),
-        el("div", { class: "sec-body" }, photoGrid(photos, () => {}))
+        el("div", { class: "sec-body" },
+          photoGrid(photos, () => {}, { recordId: () => record?.id || null }))
       )
     );
 

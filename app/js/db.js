@@ -221,4 +221,29 @@ export const files = {
   async forRecord(recordId) {
     return unwrap(await sb.from("attachments").select("*").eq("record_id", recordId));
   },
+  /**
+   * يحذف مرفقات نوع واحد من سجل: صفوفها ثم ملفاتها.
+   *
+   * الترتيب مقصود. لو سقط الاتصال بين الخطوتين بقي ملف لا يشير إليه صفّ —
+   * لا يظهر لأحد ولا يكسر شاشة. أمّا العكس فيترك صفًّا يشير إلى ملف محذوف،
+   * فتُطلب له روابط موقّعة تفشل ويظهر للفني خانة مكسورة لا يفهمها.
+   */
+  async dropKind(recordId, kind) {
+    const rows = unwrap(
+      await sb.from("attachments").select("*")
+        .eq("record_id", recordId).eq("kind", kind)
+    );
+    if (!rows.length) return 0;
+
+    const del = await sb.from("attachments").delete()
+      .eq("record_id", recordId).eq("kind", kind);
+    if (del.error) throw del.error;
+
+    const paths = rows.map((r) => r.storage_path).filter(Boolean);
+    if (paths.length) {
+      const { error } = await sb.storage.from(BUCKET).remove(paths);
+      if (error) throw error;
+    }
+    return rows.length;
+  },
 };
