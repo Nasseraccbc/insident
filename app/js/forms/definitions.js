@@ -641,8 +641,8 @@ export const FORMS=[
    {k:"tech", l:"الفني المكلّف", t:"text"}
   ]},
   {t:"فحص معدات النظام", en:"System equipment check",
-   note:"معدات النظام المختار في «النظام المعني» تنزل هنا وحدها. لكل معدة عدد وحالة: ممتازة أو تحتاج صيانة. وإن تبيّن أن العطل في نظام آخر فبدّل «النظام المعني» في قسم تسجيل البلاغ.",
-   noteEn:"Only the equipment of the system chosen in \u00abSystem Concerned\u00bb is listed. Each item takes a count and a status: excellent or needs service. If the fault turns out to be in another system, switch it in the request section.", f:[
+   note:"معدات النظام المختار في «النظام المعني» تنزل هنا وحدها. لكل معدة عدد وحالة: ممتازة أو سيئة — والسيئة يُحدَّد عطلها: صيانة أو استبدال أو تالفة. وإن تبيّن أن العطل في نظام آخر فبدّل «النظام المعني» في قسم تسجيل البلاغ.",
+   noteEn:"Only the equipment of the system chosen in \u00abSystem Concerned\u00bb is listed. Each item takes a count and a status: excellent or poor — a poor item also names its fault: service, replacement, or out of order. If the fault turns out to be in another system, switch it in the request section.", f:[
    {k:"equip", l:"معدات النظام وحالتها", t:"syscheck", bind:"asset"}
   ]},
   {t:"التنفيذ", en:"Execution", f:[
@@ -867,8 +867,8 @@ export const FORMS=[
    {k:"dur", l:"مدة التنفيذ (دقيقة)", t:"num", min:0}
   ]},
   {t:"فحص المعدات", en:"Equipment inspection",
-   note:"اختر المجموعة ثم النظام، فتظهر معداته. لكل معدة كمية وحالة: ممتازة أو تحتاج صيانة.",
-   noteEn:"Pick a group then a system to list its equipment. Each item takes a quantity and a status: excellent or needs service.", f:[
+   note:"اختر المجموعة ثم النظام، فتظهر معداته. لكل معدة كمية وحالة: ممتازة أو سيئة — والسيئة يُحدَّد عطلها: صيانة أو استبدال أو تالفة.",
+   noteEn:"Pick a group then a system to list its equipment. Each item takes a quantity and a status: excellent or poor — a poor item also names its fault: service, replacement, or out of order.", f:[
    {k:"insp", l:"الأنظمة والمعدات", t:"syscheck"}
   ]},
   {t:"الملاحظات والتوصيات", en:"Notes & recommendations", f:[

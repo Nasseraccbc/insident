@@ -438,7 +438,8 @@ export const WIDGETS = {
    تطابق تسلسل النموذج الذي يعرفه الفريق: مجموعة ← نظام ← تنزل معداته،
    ولكل معدة كمية وحالة. الشكل المخزَّن:
      { "group": "hvac", "system": "HVAC",
-       "items": { "MC-01": { q: 2, s: "maint" }, ... } }
+       "items": { "MC-01": { q: 2, s: "bad", f: "replace" }, ... } }
+     s حكم الفني على المعدة، وf تشخيصه لعطبها.
    ============================================================================ */
 
 const GROUPS = [
@@ -447,10 +448,27 @@ const GROUPS = [
   { k: "plumbing", ar: "السباكة والتصريف",           en: "Plumbing & Drainage" },
 ];
 
+/* الحكم ثنائي: ممتازة أو سيئة. وكان الطرف الثاني «تحتاج صيانة» فيحمل
+   تشخيصًا بعينه — فالتالف يُسجَّل «يحتاج صيانة» وهو لا يُصلَح، ومن يقرأ
+   التقرير لا يميّز ما يُصلَح ممّا يُستبدل. صار الحكم وحده في الزرّين،
+   والتشخيص في قائمة تحته. */
 const ST = () => [
-  { v: "ok",    label: ar("ممتازة", "Excellent"),          cls: "ok" },
-  { v: "maint", label: ar("تحتاج صيانة", "Needs service"), cls: "fail" },
+  { v: "ok",  label: ar("ممتازة", "Excellent"), cls: "ok" },
+  { v: "bad", label: ar("سيئة", "Poor"),        cls: "fail" },
 ];
+
+const FAULTS = () => [
+  { v: "maint",   label: ar("تحتاج صيانة", "Needs service") },
+  { v: "replace", label: ar("تحتاج استبدال", "Needs replacement") },
+  { v: "broken",  label: ar("تالفة", "Out of order") },
+];
+
+/* سجلات حُفظت قبل الفصل تحمل s = "maint" حكمًا وتشخيصًا معًا. تُقرأ على
+   معناها الأول: سيئة، وعطبها يحتاج صيانة. */
+function migrate(rec) {
+  if (rec && rec.s === "maint") { rec.s = "bad"; rec.f ||= "maint"; }
+  return rec;
+}
 
 const groupCache = {};
 function groupAssets(cat) {
@@ -506,11 +524,11 @@ function syscheckBuild(f, v, on, data) {
 
   function count() {
     const items = Object.values(value.items);
-    const maint = items.filter((x) => x.s === "maint").length;
+    const maint = items.filter((x) => x.s === "bad" || x.s === "maint").length;
     const good = items.filter((x) => x.s === "ok").length;
     sum.replaceChildren(
       el("b", { class: maint ? "bad" : "", text: String(maint) }),
-      el("span", { class: "dim", text: " " + ar("تحتاج صيانة", "need service") }),
+      el("span", { class: "dim", text: " " + ar("سيئة", "poor") }),
       el("span", { class: "dot" }),
       el("b", { text: String(good) }),
       el("span", { class: "dim", text: " " + ar("ممتازة", "excellent") })
@@ -587,9 +605,10 @@ function syscheckBuild(f, v, on, data) {
   }
 
   function equipRow(r) {
-    const rec = (value.items[r.code] ||= { q: 1, s: "" });
+    const rec = migrate(value.items[r.code] ||= { q: 1, s: "" });
     const qty = el("span", { class: "qty-n", text: String(rec.q ?? 1) });
     const row = el("div", { class: "sysc-item" + (rec.s ? " on" : "") });
+    const faultBox = el("div", { class: "sysc-fault" });
 
     const setQ = (n) => {
       rec.q = Math.max(1, Math.min(99, n));
@@ -613,12 +632,35 @@ function syscheckBuild(f, v, on, data) {
       ),
       seg(ST(), rec.s || "", (nv) => {
         if (nv) rec.s = nv; else delete rec.s;
+        if (rec.s !== "bad") delete rec.f;      // تشخيص بلا حكم لا معنى له
         row.classList.toggle("on", !!rec.s);
-        row.classList.toggle("bad", rec.s === "maint");
+        row.classList.toggle("bad", rec.s === "bad");
+        drawFault();
         emit();
-      })
+      }),
+      faultBox
     );
-    row.classList.toggle("bad", rec.s === "maint");
+
+    /* القائمة تظهر مع «سيئة» وحدها، وتبدأ فارغة: اختيار «تحتاج صيانة»
+       تلقائيًا تشخيصٌ لم يقله أحد. */
+    function drawFault() {
+      faultBox.replaceChildren();
+      if (rec.s !== "bad") return;
+      const sel = el("select", { class: "select", onchange: (e) => {
+        if (e.target.value) rec.f = e.target.value; else delete rec.f;
+        faultBox.classList.toggle("undiagnosed", !rec.f);
+        emit();
+      } });
+      sel.append(el("option", { value: "" }, "— " + ar("حدّد نوع العطل", "Specify the fault") + " —"));
+      for (const f of FAULTS()) {
+        sel.append(el("option", { value: f.v, selected: f.v === rec.f }, f.label));
+      }
+      faultBox.append(sel);
+      faultBox.classList.toggle("undiagnosed", !rec.f);
+    }
+
+    drawFault();
+    row.classList.toggle("bad", rec.s === "bad");
     return row;
   }
 

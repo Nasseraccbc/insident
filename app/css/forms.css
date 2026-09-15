@@ -417,5 +417,10 @@
 .sysc-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; }
 .sysc-item .seg { width: 100%; }
 .sysc-item .seg-btn { flex: 1; width: auto; font-size: var(--fs-xs); font-weight: 700; }
+/* قائمة العطل تحت الحكم لا بجانبه: الحكم أولًا ثم تشخيصه */
+.sysc-fault:not(:empty) { margin-top: var(--sp-2); }
+.sysc-fault .select { width: 100%; font-size: var(--fs-sm); }
+/* سيئة بلا تشخيص نقصٌ في البيانات لا خيار — يُعلَّم ولا يُمنع */
+.sysc-fault.undiagnosed .select { border-color: var(--warn); }
 
 @media (max-width: 720px) { .sysc-list { grid-template-columns: 1fr; } }
