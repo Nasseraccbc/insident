@@ -212,7 +212,12 @@ async function formEditor(page, state, { form, taskId, recordId }) {
     /* المؤقّت أعلى النموذج: الفني يراه قبل أن يبدأ التعبئة لا بعدها */
     sla?.stop();
     if (form.timer) {
-      sla = slaPanel(form, data);
+      /* البلاغ خرج من يد الفني (أُرسل أو أُنجزت مهمته): العدّ يتجمّد عند
+         تلك اللحظة. مواصلته تُظهر تأخّرًا لم يقع. */
+      const stoppedAt = record && record.state !== "draft"
+        ? record.updated_at
+        : task?.status === "done" ? task.completed_at : null;
+      sla = slaPanel(form, data, { stoppedAt });
       body.append(sla.node);
     }
 
@@ -287,7 +292,8 @@ async function formEditor(page, state, { form, taskId, recordId }) {
 
       if (submit) {
         record = await records.update(record.id, { state: "sent" });
-        if (task) await tasks.update(task.id, { status: "done", completed_at: new Date().toISOString() });
+        // وقت الإنجاز يختمه مشغّل القاعدة لا المتصفح
+        if (task) await tasks.update(task.id, { status: "done" });
       }
 
       clearDraft(form.code, taskId);

@@ -158,18 +158,26 @@ export function stat(label, value, note, kind = "") {
 /* يُرجع العنصر ودالة إيقاف — الشاشة مسؤولة عن الإيقاف عند مغادرتها،
    وإلا بقيت مؤقتات معلّقة تستهلك بطارية الجوّال. */
 
-export function liveTimer(dueAt) {
+export function liveTimer(dueAt, { stoppedAt } = {}) {
   const node = el("span", { class: "task-timer" });
   if (!dueAt) { node.textContent = "—"; return { node, stop() {} }; }
 
   const due = new Date(dueAt).getTime();
-  const tick = () => {
-    const left = due - Date.now();
+  const paint = (left) => {
     node.textContent = fmtDur(left);
     node.className = "task-timer " + (left < 0 ? "late" : left < 15 * 60000 ? "warn" : "ok");
   };
-  tick();
-  const id = setInterval(tick, 1000);
+
+  // مهمة انتهت: الوقت يتجمّد عند لحظة إنجازها. مواصلة العدّ بعد الإنجاز
+  // تُظهر تأخّرًا لم يقع، وتكذب على مؤشر الالتزام.
+  if (stoppedAt) {
+    paint(due - new Date(stoppedAt).getTime());
+    node.classList.add("frozen");
+    return { node, stop() {} };
+  }
+
+  paint(due - Date.now());
+  const id = setInterval(() => paint(due - Date.now()), 1000);
   return { node, stop: () => clearInterval(id) };
 }
 

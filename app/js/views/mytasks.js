@@ -64,7 +64,7 @@ export async function mytasksView(page, state) {
   }
 
   function card(task) {
-    const timer = liveTimer(task.due_at);
+    const timer = liveTimer(task.due_at, { stoppedAt: task.completed_at });
     timers.push(timer);
 
     const actions = el("div", { class: "task-actions" });

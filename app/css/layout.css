@@ -279,3 +279,9 @@
   #toasts { inset-inline: var(--sp-3); inset-block-end: var(--sp-3); }
   .toast { max-width: none; }
 }
+
+/* مؤقّت متجمّد: انتهت المهمة فالرقم سِجلّ لا عدّاد */
+.task-timer.frozen { opacity: .65; }
+.task-timer.frozen::after {
+  content: " ⏹"; font-size: .7em; vertical-align: middle;
+}

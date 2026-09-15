@@ -380,3 +380,5 @@
 .sla-box.warn .sla-v { color: var(--warn); }
 .sla-box.ok   .sla-v { color: var(--ok); }
 .sla-n { font-size: 11px; color: var(--text-3); }
+.sla-box.frozen { opacity: .7; }
+.sla-box.frozen .sla-v::after { content: " ⏹"; font-size: .55em; vertical-align: middle; }

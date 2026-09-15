@@ -17,7 +17,7 @@
    القاعدة من طابعها الزمني — لا من ساعة المتصفح التي قد تكون مضبوطة خطأ.
    ============================================================================ */
 
-import { lang } from "../i18n.js";
+import { lang, fmtDur } from "../i18n.js";
 import { el } from "../ui.js";
 
 const RULES = {
@@ -79,13 +79,9 @@ function regMoment(form, data) {
   return isNaN(at) ? null : at;
 }
 
-const fmtLeft = (ms) => {
-  const neg = ms < 0;
-  const m = Math.floor(Math.abs(ms) / 60000);
-  const h = Math.floor(m / 60), mm = m % 60;
-  const s = h ? `${h}:${String(mm).padStart(2, "0")}` : `${mm} ${L("د", "m")}`;
-  return (neg ? "+" : "") + s;
-};
+/* عدّاد حقيقي ينزل ثانية بثانية: hh:mm:ss، وبإشارة سالبة عند التجاوز.
+   «14 د» رقم جامد لا يُشعر الفني بمرور الوقت. */
+const fmtLeft = (ms) => fmtDur(ms);
 
 const fmtTarget = (min) =>
   min === 0 ? L("فورًا", "immediate")
@@ -97,9 +93,10 @@ const fmtTarget = (min) =>
  * لوحة المؤقّت. تُرجع { node, stop } — الإيقاف مسؤولية الشاشة وإلا بقي
  * المؤقّت يعمل بعد مغادرتها ويستهلك بطارية الجوّال.
  */
-export function slaPanel(form, data) {
+export function slaPanel(form, data, { stoppedAt } = {}) {
   const node = el("div", { class: "sla-card" });
   let timerId = null;
+  const frozen = stoppedAt ? new Date(stoppedAt).getTime() : null;
 
   function draw() {
     const cls = data.cls;
@@ -119,7 +116,7 @@ export function slaPanel(form, data) {
       return;
     }
 
-    const now = Date.now();
+    const now = frozen || Date.now();
     const boxes = (form.timer.steps || []).map((st) => {
       const min = rules[st.sla];
       const due = reg.getTime() + min * 60000;
@@ -149,24 +146,29 @@ export function slaPanel(form, data) {
 
       const left = due - now;
       const state = left < 0 ? "late" : left < Math.max(60000, min * 60000 * 0.25) ? "warn" : "run";
-      return el("div", { class: "sla-box " + state },
+      return el("div", { class: "sla-box " + state + (frozen ? " frozen" : "") },
         el("div", { class: "sla-l", text: lang === "ar" ? st.l : st.en || st.l }),
         el("div", { class: "sla-v mono", text: fmtLeft(left) }),
         el("div", { class: "sla-n",
-          text: (left < 0 ? L("تأخّر عن ", "over by ") : L("متبقٍ من ", "left of ")) + fmtTarget(min) })
+          text: frozen ? L("توقّف عند الإرسال", "stopped at submission")
+                       : (left < 0 ? L("تأخّر عن ", "over by ") : L("متبقٍ من ", "left of ")) + fmtTarget(min) })
       );
     });
 
     node.replaceChildren(
       el("div", { class: "sla-head small",
-        text: L(`بدأ العدّ من ${data[form.timer.timeField]} — تصنيف: ${cls}`,
-                `Counting from ${data[form.timer.timeField]} — class: ${cls}`) }),
+        text: frozen
+          ? L(`توقّف العدّ — البلاغ أُرسل. بدأ من ${data[form.timer.timeField]}`,
+              `Clock stopped — request submitted. Started ${data[form.timer.timeField]}`)
+          : L(`بدأ العدّ من ${data[form.timer.timeField]} — تصنيف: ${cls}`,
+              `Counting from ${data[form.timer.timeField]} — class: ${cls}`) }),
       el("div", { class: "sla-grid" }, ...boxes)
     );
   }
 
   draw();
-  timerId = setInterval(draw, 30000);   // دقّة دقيقة تكفي: تحديث كل نصف دقيقة
+  // ثانية بثانية: المطلوب عدّاد يُرى نزوله لا رقم يتغيّر كل نصف دقيقة
+  if (!frozen) timerId = setInterval(draw, 1000);
 
   return { node, refresh: draw, stop: () => clearInterval(timerId) };
 }
