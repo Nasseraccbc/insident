@@ -6,6 +6,7 @@
    ============================================================================ */
 
 import { tasks } from "../db.js";
+import { CLOSE_MIN } from "../forms/timer.js";
 import { t, lang, fmtStamp } from "../i18n.js";
 import {
   el, pageHead, empty, loading, liveTimer, taskStatusBadge, priorityBadge, toast,
@@ -63,8 +64,34 @@ export async function mytasksView(page, state) {
     host.replaceChildren(frag);
   }
 
+  /** مهلة مقروءة: «٢٤ ساعة» لا «1440». */
+  function fmtSpan(min) {
+    if (!min) return "—";
+    const h = Math.floor(min / 60), m = min % 60;
+    if (lang !== "ar") return h ? `${h}h${m ? " " + m + "m" : ""}` : `${m}m`;
+    return h ? `${h} ساعة${m ? ` و${m} د` : ""}` : `${m} دقيقة`;
+  }
+
   function card(task) {
-    const timer = liveTimer(task.due_at, { stoppedAt: task.completed_at });
+    /* الساعة لا تجري قبل أن يفتح الفني البلاغ: قبل ذلك تُعرض المهلة رقمًا
+       ساكنًا. وبعد البدء تُحتسب من started_at المختوم على الخادم + مهلة
+       الأولوية — وهي المهلة نفسها التي يعرضها النموذج، لا ساعة رابعة. */
+    const mins = CLOSE_MIN[task.priority];
+    const dueISO = task.started_at && mins
+      ? new Date(new Date(task.started_at).getTime() + mins * 60000).toISOString()
+      : task.due_at;
+
+    let clock, clockNote;
+    if (!task.started_at) {
+      clock = { node: el("span", { class: "task-timer idle", text: fmtSpan(mins) }), stop() {} };
+      clockNote = lang === "ar" ? "المهلة تبدأ عند الفتح" : "starts when opened";
+    } else {
+      clock = liveTimer(dueISO, { stoppedAt: task.completed_at });
+      clockNote = task.completed_at
+        ? (lang === "ar" ? "عند الإنجاز" : "at completion")
+        : (lang === "ar" ? "متبقٍ للإنجاز" : "left to complete");
+    }
+    const timer = clock;
     timers.push(timer);
 
     const actions = el("div", { class: "task-actions" });
@@ -104,7 +131,8 @@ export async function mytasksView(page, state) {
           )
         ),
         el("div", { style: "text-align:center;flex:none" },
-          task.due_at ? timer.node : null,
+          timer.node,
+          el("div", { class: "tiny dim", text: clockNote }),
           el("div", { class: "mt-2" }, taskStatusBadge(task.status))
         )
       ),

@@ -285,3 +285,5 @@
 .task-timer.frozen::after {
   content: " ⏹"; font-size: .7em; vertical-align: middle;
 }
+/* مهلة لم تبدأ: رقم ساكن لا عدّاد — لئلّا يُظنّ أن الوقت يجري */
+.task-timer.idle { color: var(--text-3); font-size: var(--fs-md); font-weight: 700; }
