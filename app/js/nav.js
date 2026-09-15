@@ -16,8 +16,10 @@ const ROUTES = [
   { id: "mytasks",     icon: "◉", label: "navMyTasks",    group: "grpMain",      roles: ["technician"] },
   { id: "requests",    icon: "◉", label: "navRequests",   group: "grpMain",      roles: ["employee"] },
 
+  /* حُذف «الوارد»: غرضه طابور واحد يستقبل فيه المشرف كل ما يصله، وهو ما
+     صارت تفعله «الاعتمادات» — طلبات وبلاغات جديدة أعلاها، وسجلات بانتظار
+     الاعتماد تحتها. شاشة ثالثة تعرض الصفوف ذاتها ازدواجُ مصدر لا خدمة. */
   { id: "tasks",       icon: "☰", label: "navTasks",      group: "grpWork",      roles: ["admin", "supervisor"] },
-  { id: "inbox",       icon: "↓", label: "navInbox",      group: "grpWork",      roles: ["admin", "supervisor"] },
   { id: "records",     icon: "▤", label: "navRecords",    group: "grpWork",      roles: ["admin", "supervisor", "compliance"] },
   // الاعتماد قرار مشرف الموقع وحده؛ المدير وممثل الهيئة يريان ولا يقرّران
   { id: "approvals",   icon: "✓", label: "navApprovals",  group: "grpWork",      roles: ["supervisor"] },

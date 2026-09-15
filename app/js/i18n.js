@@ -31,7 +31,7 @@ const AR = {
 
   /* التنقّل */
   navDash: "لوحة المؤشرات", navOps: "لوحة التشغيل", navCompliance: "لوحة الامتثال",
-  navTasks: "المهام", navMyTasks: "مهامي", navInbox: "الوارد",
+  navTasks: "المهام", navMyTasks: "مهامي",
   navRecords: "السجلات", navForms: "النماذج", navSla: "مؤقتات SLA",
   navRisks: "المخاطر", navApprovals: "الاعتمادات", navUsers: "المستخدمون",
   navSettings: "الإعدادات", navRequests: "طلباتي",
@@ -88,7 +88,7 @@ const EN = {
   sp_hospitality: "Hospitality", sp_cleaning: "Cleaning", sp_other: "Other",
 
   navDash: "Dashboard", navOps: "Operations", navCompliance: "Compliance",
-  navTasks: "Tasks", navMyTasks: "My Tasks", navInbox: "Inbox",
+  navTasks: "Tasks", navMyTasks: "My Tasks",
   navRecords: "Records", navForms: "Forms", navSla: "SLA Timers",
   navRisks: "Risks", navApprovals: "Approvals", navUsers: "Users",
   navSettings: "Settings", navRequests: "My Requests",
