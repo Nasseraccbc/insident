@@ -10,6 +10,7 @@ import { dashboardView } from "./views/dashboard.js";
 import { approvalsView } from "./views/approvals.js";
 import { recordsView } from "./views/records.js";
 import { slaView } from "./views/sla.js";
+import { risksView } from "./views/risks.js";
 
 registerView("mytasks", mytasksView);
 registerView("tasks", tasksView);
@@ -21,6 +22,7 @@ for (const id of ["dashboard", "ops", "compliance"]) registerView(id, dashboardV
 registerView("approvals", approvalsView);
 registerView("records", recordsView);
 registerView("sla", slaView);
+registerView("risks", risksView);
 
 // الشاشات غير المسجّلة تعرض "قيد الإنشاء" — التنقّل يعمل من الآن
 // وتُبنى الشاشات على دفعات دون كسر النظام.

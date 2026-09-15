@@ -91,6 +91,20 @@
    إدخال رئيسي لا أداة تضييق */
 .sla-filters .select { max-width: 220px; }
 
+/* ─── بطاقة خطر ────────────────────────────────────────────────────────── */
+/* الدرجة رقم واحد بارز: هي مفتاح الترتيب والتصعيد، فلا تُدفن في جدول */
+.rk-score {
+  font-size: var(--fs-2xl); font-weight: 800; line-height: 1;
+  font-family: var(--mono); color: var(--text-2);
+}
+.rk-score.hot { color: var(--danger); }
+.rk-grid {
+  display: grid; gap: var(--sp-3);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  padding-top: var(--sp-3); border-top: 1px solid var(--border);
+}
+.rk-cell .small { line-height: 1.5; }
+
 .stat-label { font-size: var(--fs-xs); color: var(--text-3); font-weight: 600; letter-spacing: .02em; }
 .stat-value { font-size: var(--fs-3xl); font-weight: 800; line-height: 1.15; margin-top: 2px; }
 .stat-note  { font-size: var(--fs-xs); color: var(--text-3); margin-top: 2px; }

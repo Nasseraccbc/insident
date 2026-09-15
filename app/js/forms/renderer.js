@@ -40,7 +40,14 @@ export function blankValue(field) {
   const w = WIDGETS[field.t];
   if (w) return w.blank();
   switch (field.t) {
-    case "rows": return [];
+    /* جداول الكراسة تأتي ببنودها مكتوبة (قائمة تحقق الجودة · سجل المخاطر ·
+       جدول المؤشرات …). كانت التعريفات تحملها وتُهمَل، فيُفتح النموذج بجدول
+       فارغ ويُترك للمعبّئ أن يستحضر البنود من ذاكرته — وهذا نقض للغرض من
+       قائمة التحقق. والنسخ عميق وإلا شارك كل من فتح النموذج الصفوف ذاتها. */
+    case "rows":
+      if (Array.isArray(field.seedRows)) return field.seedRows.map((r) => [...r]);
+      return Array.from({ length: field.seed || 0 },
+                        () => (field.cols || []).map(() => ""));
     case "chkg": return [];
     case "num":  return "";
     default:     return "";
@@ -339,8 +346,14 @@ export function completion(form, data) {
       total++;
       const v = data[f.k];
       const w = WIDGETS[f.t];
-      if (w ? w.filled(v)
-            : Array.isArray(v) ? v.length : String(v ?? "").trim()) filled++;
+      // صفوف فارغة مهيّأة ليست تعبئة: عدّها يجعل النموذج يبدو منجزًا قبل
+      // أن يُكتب فيه حرف. أمّا صفوف الكراسة فمحتواها إجابة قائمة بذاتها.
+      const has = w ? w.filled(v)
+        : f.t === "rows"
+          ? Array.isArray(v) && v.some((r) => Array.isArray(r)
+              && r.some((c) => String(c ?? "").trim()))
+        : Array.isArray(v) ? v.length : String(v ?? "").trim();
+      if (has) filled++;
     }
   }
   return { total, filled, pct: total ? Math.round((filled / total) * 100) : 0 };
