@@ -22,25 +22,26 @@
   z-index: 60;
 }
 
+/* صفّ شعار بارتفاع الشريط العلوي يقصر عن ٤٠px، والشعار عندها حروفٌ لا
+   تُقرأ. فصار رأس الشريط كتلة رأسية: الشعار كاملًا باسم الشركة، وتحته
+   اسم النظام ورقم المنافسة. */
 .brand {
-  display: flex; align-items: center; gap: var(--sp-3);
-  padding: 0 var(--sp-5);
-  height: var(--topbar-h); flex: none;
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) var(--sp-4);
+  flex: none; text-align: center;
   border-bottom: 1px solid rgba(255,255,255,.07);
 }
 /* الشعار مرسوم على أرضية بيضاء، والشريط الجانبي كحلي داكن والوضع الليلي
    أدكن — فيُحمل على لوحة بيضاء في كل الحالات بدل شفافية مقصوصة تترك
    هالة رمادية حول الحواف المنعّمة. */
-.brand-mark {
-  /* اللوحة بنسبة العلامة نفسها (٣:٥) لا مربّعة: المربّع يترك بياضًا على
-     الجانبين يجعلها تبدو أصغر ممّا هي */
-  width: 26px; height: 38px; flex: none;
-  border-radius: var(--r-sm);
+.brand-logo {
+  display: block; width: 100%; max-width: 186px; height: auto;
   background: #fff;
-  padding: 2px;
-  object-fit: contain;
+  border-radius: var(--r-lg);
+  padding: var(--sp-2) var(--sp-3);
 }
-.brand-text { min-width: 0; }
+.brand-text { min-width: 0; width: 100%; }
 .brand-name { color: #fff; font-weight: 800; font-size: var(--fs-base); line-height: 1.2; }
 /* الكهرماني الفاتح مقروء على الشريط الداكن فقط؛ على بطاقة الدخول البيضاء
    تباينه نحو 2:1 فيؤخذ لون النص الخافت بدله. */

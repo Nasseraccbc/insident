@@ -113,7 +113,7 @@ function buildSidebar() {
 
   return el("aside", { class: "sidebar", id: "sidebar" },
     el("div", { class: "brand" },
-      el("img", { class: "brand-mark", src: "img/mark.png",
+      el("img", { class: "brand-logo", src: "img/logo.png",
                   alt: "شركة قوة الدعم للخدمات المساندة" }),
       el("div", { class: "brand-text" },
         el("div", { class: "brand-name", text: t("appName") }),
