@@ -339,11 +339,11 @@ async function formEditor(page, state, { form, taskId, recordId }) {
 
       if (submit) {
         record = await records.update(record.id, { state: "sent" });
-        /* لا تُنهى المهمة هنا: الإرسال ليس إنجازًا بل طلب اعتماد. المهمة
-           تُنجَز حين يعتمد المشرف، وتعود للعمل إن أرجعها — ويتكفّل بذلك
-           review_record في القاعدة. */
-        if (task && task.status !== "in_progress") {
-          await tasks.update(task.id, { status: "in_progress" });
+        /* الإرسال ليس إنجازًا بل طلب اعتماد — ولا هو تنفيذًا: الفني فرغ،
+           والعائق صار عند المشرف. المهمة تُنجَز حين يعتمد، وتعود للعمل إن
+           أرجعها، ويتكفّل بذلك review_record في القاعدة. */
+        if (task && task.status !== "submitted") {
+          await tasks.update(task.id, { status: "submitted" });
         }
       }
 

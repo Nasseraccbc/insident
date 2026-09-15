@@ -152,7 +152,7 @@ export const sla = {
       await sb.from("tasks")
         // للمهمة مفتاحان إلى records (سجلّها ومصدرها)، فيلزم تسمية المقصود
         .select("*, record:records!tasks_record_id_fkey(id, state, responded_at, sla_response_due, sla_close_due, closed_at)")
-        .in("status", ["pending", "new", "assigned", "in_progress"])
+        .in("status", ["pending", "new", "assigned", "in_progress", "submitted"])
         .order("created_at", { ascending: true })
         .limit(300)
     );

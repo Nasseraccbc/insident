@@ -108,10 +108,15 @@ export async function mytasksView(page, state) {
       clock = { node: el("span", { class: "task-timer idle", text: fmtSpan(mins) }), stop() {} };
       clockNote = lang === "ar" ? "المهلة تبدأ عند الفتح" : "starts when opened";
     } else {
-      clock = liveTimer(dueISO, { stoppedAt: task.completed_at });
+      /* ساعة الفني تقف عند الإرسال لا عند الاعتماد: ما بعد الإرسال انتظار
+         قرارٍ ليس بيده، وتحميله تأخّره ظلم يشوّه مؤشر الالتزام. */
+      const stoppedAt = task.completed_at || task.submitted_at;
+      clock = liveTimer(dueISO, { stoppedAt });
       clockNote = task.completed_at
         ? (lang === "ar" ? "عند الإنجاز" : "at completion")
-        : (lang === "ar" ? "متبقٍ للإنجاز" : "left to complete");
+        : task.submitted_at
+          ? (lang === "ar" ? "توقّف عند الإرسال" : "stopped at submission")
+          : (lang === "ar" ? "متبقٍ للإنجاز" : "left to complete");
     }
     const timer = clock;
     timers.push(timer);
@@ -128,12 +133,16 @@ export async function mytasksView(page, state) {
     } else if (task.status === "in_progress") {
       actions.append(
         el("button", { class: "btn btn-primary", onclick: () => openForm(task) },
-          "✎ " + (lang === "ar" ? "أكمل " : "Continue ") + (task.form_code || "")),
-        el("button", {
-          class: "btn",
-          onclick: () => change(task, { status: "done" }),
-        }, "✓ " + t("ts_done"))
-      );
+          "✎ " + (lang === "ar" ? "أكمل " : "Continue ") + (task.form_code || "")));
+      /* مهمة بلا نموذج ليس لها «إرسال»، فتُنهى بزرّ. أمّا ذات النموذج
+         فإنهاؤها من داخله بالإرسال — والإنجاز يقرّره المعتمِد لا منفّذه. */
+      if (!task.form_code) {
+        actions.append(el("button", { class: "btn",
+          onclick: () => change(task, { status: "done" }) }, "✓ " + t("ts_done")));
+      }
+    } else if (task.status === "submitted") {
+      actions.append(el("button", { class: "btn", onclick: () => openForm(task) },
+        "👁 " + (lang === "ar" ? "عرض ما أُرسل" : "View what was sent")));
     }
 
     return el("div", { class: "task-card p-" + (task.priority || "medium") },
@@ -159,6 +168,11 @@ export async function mytasksView(page, state) {
         )
       ),
       task.description ? el("p", { class: "small muted mt-2", text: task.description }) : null,
+      task.status === "submitted"
+        ? el("div", { class: "note small mt-2", text: lang === "ar"
+            ? "أُرسل إلى مشرف الموقع. لا عمل عليك حتى يعتمده أو يُرجعه بملاحظة."
+            : "Sent to the site supervisor. Nothing to do until it is approved or returned." })
+        : null,
       actions.childElementCount ? actions : null
     );
   }

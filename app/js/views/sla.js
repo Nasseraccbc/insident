@@ -79,6 +79,12 @@ export async function slaView(page, state) {
       return { bucket: "idle", since: task.created_at,
                why: L("بانتظار اعتمادك", "awaiting your approval") };
     }
+    /* أُرسل: ساعة الفني وقفت، والانتظار صار على المشرف — فيُعرض زمن
+       انتظاره هو، لا ما بقي من مهلة فرغ منها صاحبها. */
+    if (task.status === "submitted") {
+      return { bucket: "idle", since: task.submitted_at || task.created_at,
+               why: L("أُرسل وينتظر تأكيدك", "submitted, awaiting your confirmation") };
+    }
     /* «لم يبدأ» ليست حالة واحدة: سببها هو ما يحدّد من يتحرّك. ولهذا تُفصَل
        — بلاغ بلا فنيّ ينتظر قرارك، وبلاغ مُسنَد لم يُفتح ينتظر فنيَّه. */
     if (!task.assigned_to) {

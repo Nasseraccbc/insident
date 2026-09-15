@@ -158,6 +158,8 @@ const STATE_VIEW = {
   assigned:    { label: L("اعتُمد وأُسند", "Approved and assigned"),        cls: "badge-brand" },
   new:         { label: L("اعتُمد", "Approved"),                            cls: "badge-brand" },
   in_progress: { label: L("قيد التنفيذ", "In progress"),                    cls: "badge-warn" },
+  // من عين الطالب: العمل تمّ وينتظر تأكيد المشرف — لا شأن له بهذا الانتظار
+  submitted:   { label: L("نُفِّذ وينتظر التأكيد", "Done, awaiting confirmation"), cls: "badge-info" },
   done:        { label: L("نُفِّذ", "Completed"),                            cls: "badge-ok" },
   cancelled:   { label: L("لم يُعتمد", "Not approved"),                      cls: "badge-danger" },
 };
