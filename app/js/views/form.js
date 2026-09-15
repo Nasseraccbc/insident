@@ -119,6 +119,7 @@ async function formEditor(page, state, { form, taskId, recordId }) {
       if (task) {
         if (!data.cls && CLASS_OF[task.priority]) data.cls = CLASS_OF[task.priority];
         if (!data.loc && task.location) data.loc = task.location;
+        if (!data.desc) data.desc = task.description || task.title || "";
       }
       const at = task?.started_at ? new Date(task.started_at) : new Date();
       if (stampOpen(form, data, at)) writeDraft(form.code, taskId, data);
@@ -237,6 +238,25 @@ async function formEditor(page, state, { form, taskId, recordId }) {
         el("div", { class: "sec-body" }, photoGrid(photos, () => {}))
       )
     );
+
+    /* ما سجّله المشرف لا يُعاد كتابته ولا يُعدَّل من الميدان: البلاغ وثيقة
+       بدايتها عند مَن استقبله. الفني يكمل التنفيذ لا يعيد التسجيل. */
+    const OWNED_BY_SUPERVISOR = ["no", "rdt", "rtm", "loc", "cls", "desc"];
+    if (task && form.timer && state.profile.role === "technician" && !readOnly) {
+      const first = body.querySelector(".form-sec .sec-body");
+      if (first) {
+        for (const k of OWNED_BY_SUPERVISOR) {
+          const f = [...first.querySelectorAll(".field")].find(
+            (n) => n.querySelector("label")?.textContent?.trim() ===
+                   (form.secs[0].f.find((x) => x.k === k)?.l || "").trim());
+          f?.querySelectorAll("input,select,textarea").forEach((n) => { n.disabled = true; });
+        }
+        first.prepend(el("div", { class: "note small mb-4",
+          text: lang === "ar"
+            ? "بيانات التسجيل سجّلها مشرف الموقع عند إسناد البلاغ — للعرض فقط."
+            : "Registration data was entered by the site supervisor — read only." }));
+      }
+    }
 
     if (readOnly) {
       // أزرار الطيّ والتصفية ليست إدخالًا: تعطيلها يحبس محتوى سجل مغلق
