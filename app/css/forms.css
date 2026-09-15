@@ -344,3 +344,39 @@
   .qty-b { width: 46px; min-height: 44px; }
   .ast-head { min-height: 58px; }
 }
+
+/* ─── مؤقّت اتفاقية مستوى الخدمة ───────────────────────────────────────── */
+/* إطار متقطّع بلون الهوية المشتقّ كما في بطاقة SLA في النظام القديم */
+
+.sla-card {
+  background: var(--surface-2);
+  border: 2px dashed var(--nv-500);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+}
+.sla-head { color: var(--text-2); margin-bottom: var(--sp-3); font-weight: 600; }
+.sla-hint { color: var(--text-3); text-align: center; }
+
+.sla-grid {
+  display: grid; gap: var(--sp-3);
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.sla-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-block-start: 3px solid var(--border-str);
+  border-radius: var(--r);
+  padding: var(--sp-3);
+  text-align: center;
+}
+.sla-box.run  { border-block-start-color: var(--ok); }
+.sla-box.warn { border-block-start-color: var(--warn); background: var(--warn-bg); }
+.sla-box.late { border-block-start-color: var(--danger); background: var(--danger-bg); }
+.sla-box.ok   { border-block-start-color: var(--ok); background: var(--ok-bg); }
+
+.sla-l { font-size: var(--fs-xs); font-weight: 700; color: var(--text-2); }
+.sla-v { font-size: var(--fs-xl); font-weight: 800; line-height: 1.2; margin: 2px 0; }
+.sla-box.late .sla-v { color: var(--danger); }
+.sla-box.warn .sla-v { color: var(--warn); }
+.sla-box.ok   .sla-v { color: var(--ok); }
+.sla-n { font-size: 11px; color: var(--text-3); }

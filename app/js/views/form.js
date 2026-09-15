@@ -21,6 +21,7 @@ import {
   FORMS, formByCode, formName, renderSection, blankData, completion, tr,
 } from "../forms/renderer.js";
 import { photoGrid, uploadAll, loadExisting } from "../photos.js";
+import { slaPanel, stampOpen, priorityOf } from "../forms/timer.js";
 
 const DRAFT_KEY = (code, taskId) => `sce_draft_${code}_${taskId || "new"}`;
 
@@ -96,6 +97,9 @@ async function formEditor(page, state, { form, taskId, recordId }) {
       data = blankData(form);
       const saved = readDraft(form.code, taskId);
       if (saved) Object.assign(data, saved);
+      // بلاغ جديد: تُختم لحظة الفتح في رقم البلاغ وتاريخه ووقته، ومنها
+      // يبدأ عدّ الاستجابة والإنجاز — كما كان في النظام القديم.
+      if (stampOpen(form, data)) writeDraft(form.code, taskId, data);
     }
     if (taskId) {
       const list = await tasks.list({});
@@ -151,8 +155,11 @@ async function formEditor(page, state, { form, taskId, recordId }) {
   /* ─── الجسم ─── */
   let autosaveTimer = null;
 
+  let sla = null;
+
   function onFieldChange() {
     refreshProgress();
+    sla?.refresh();
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(() => writeDraft(form.code, taskId, data), 2000);
   }
@@ -187,6 +194,13 @@ async function formEditor(page, state, { form, taskId, recordId }) {
       }
 
       if (history.length) body.append(timeline(history, people));
+    }
+
+    /* المؤقّت أعلى النموذج: الفني يراه قبل أن يبدأ التعبئة لا بعدها */
+    sla?.stop();
+    if (form.timer) {
+      sla = slaPanel(form, data);
+      body.append(sla.node);
     }
 
     (form.secs || []).forEach((sec, i) => {
@@ -233,13 +247,20 @@ async function formEditor(page, state, { form, taskId, recordId }) {
         data,
       };
 
+      // تصنيف البلاغ يقود أولوية السجل، ومنها تحسب القاعدة مواعيد SLA
+      const pr = priorityOf(form, data);
+      if (pr) payload.priority = pr;
+
       if (record) {
         record = await records.update(record.id, payload);
       } else {
         record = await records.create({
           ...payload,
           state: "draft",
-          priority: task?.priority || null,
+          // أولوية النموذج تسبق أولوية المهمة: تصنيف البلاغ أدقّ ممّا
+          // قدّره المشرف عند التوزيع. وترتيب المفاتيح هنا مهم — كان
+          // السطر يأتي بعد نشر payload فيدهس القيمة بـ null.
+          priority: payload.priority || task?.priority || null,
           created_by: state.profile.id,
           assigned_to: task?.assigned_to || state.profile.id,
         });
@@ -273,6 +294,7 @@ async function formEditor(page, state, { form, taskId, recordId }) {
   build();
 
   return () => {
+    sla?.stop();
     clearTimeout(autosaveTimer);
     for (const p of Object.values(photos)) {
       if (p?.url?.startsWith("blob:")) URL.revokeObjectURL(p.url);
