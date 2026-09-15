@@ -107,11 +107,25 @@ export const records = {
 /* ─── المهام ───────────────────────────────────────────────────────────── */
 
 export const tasks = {
-  async list({ assignedTo, status, limit = 200 } = {}) {
+  async list({ assignedTo, createdBy, status, limit = 200 } = {}) {
     let q = sb.from("tasks").select("*").order("created_at", { ascending: false }).limit(limit);
     if (assignedTo) q = q.eq("assigned_to", assignedTo);
-    if (status) q = q.eq("status", status);
+    if (createdBy) q = q.eq("created_by", createdBy);
+    if (status) q = Array.isArray(status) ? q.in("status", status) : q.eq("status", status);
     return unwrap(await q);
+  },
+  /** بلاغ ميداني: يقف عند المشرف ولا يُسنَد إلى أحد حتى يُعتمد. */
+  async report(row) {
+    return unwrap(await sb.from("tasks").insert({
+      ...row, status: "pending", assigned_to: null, record_id: null,
+    }).select().single());
+  },
+  /** قرار المشرف في بلاغ ميداني — عبر الدالة لا بتحديث مباشر. */
+  async review(id, decision, { note = null, assign = null, form = null, priority = null } = {}) {
+    return unwrap(await sb.rpc("review_task", {
+      p_task: id, p_decision: decision, p_note: note || null,
+      p_assign: assign || null, p_form: form || null, p_priority: priority || null,
+    }));
   },
   async create(row) {
     return unwrap(await sb.from("tasks").insert(row).select().single());

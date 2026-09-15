@@ -9,10 +9,14 @@
    يعيدها مسودة عند الفني ومعها سبب الإرجاع.
    ============================================================================ */
 
-import { records, profiles } from "../db.js";
-import { lang, fmtStamp } from "../i18n.js";
-import { el, pageHead, empty, loading, toast, modal, textarea } from "../ui.js";
+import { records, profiles, tasks } from "../db.js";
+import { lang, t, fmtStamp } from "../i18n.js";
+import {
+  el, pageHead, empty, loading, toast, modal, textarea, field, select,
+  priorityBadge,
+} from "../ui.js";
 import { formByCode, formName } from "../forms/renderer.js";
+import { formSelect, techSelect } from "../pickers.js";
 
 const L = (ar, en) => (lang === "ar" ? ar : en);
 
@@ -20,15 +24,23 @@ export async function approvalsView(page, state) {
   const host = el("div", {});
   page.append(
     pageHead(L("الاعتمادات", "Approvals"),
-             L("سجلات أرسلها الفنيون وتنتظر قرارك", "Records sent by technicians, awaiting your decision")),
+             L("بلاغات رفعها الفنيون وسجلات أرسلوها — تنتظر قرارك",
+               "Requests raised and records sent by technicians, awaiting your decision")),
     host
   );
   host.append(loading());
 
-  let rows = [], people = {};
+  let rows = [], pending = [], people = {}, techGroups = {};
   async function load() {
-    rows = await records.list({ state: "sent", limit: 100 });
-    const list = await profiles.all().catch(() => []);
+    const [recs, pend, list, groups] = await Promise.all([
+      records.list({ state: "sent", limit: 100 }),
+      tasks.list({ status: "pending", limit: 100 }),
+      profiles.all().catch(() => []),
+      profiles.techniciansBySpecialty().catch(() => ({})),
+    ]);
+    rows = recs;
+    pending = pend;
+    techGroups = groups;
     people = Object.fromEntries(list.map((p) => [p.id, p.full_name || p.email]));
   }
 
@@ -36,13 +48,137 @@ export async function approvalsView(page, state) {
   catch (err) { host.replaceChildren(empty(L("تعذّر التحميل", "Could not load"), err.message, "⚠")); return; }
 
   function draw() {
-    if (!rows.length) {
+    if (!rows.length && !pending.length) {
       host.replaceChildren(empty(
         L("لا شيء ينتظر قرارك", "Nothing awaiting your decision"),
-        L("كل ما أُرسل جرى البتّ فيه", "Everything sent has been decided"), "✓"));
+        L("كل ما وصلك جرى البتّ فيه", "Everything received has been decided"), "✓"));
       return;
     }
-    host.replaceChildren(el("div", { class: "field-list" }, ...rows.map(card)));
+
+    const frag = el("div", { class: "stack" });
+
+    /* البلاغات الميدانية أولًا: كل بلاغ معلّق عطلٌ قائم لم يبدأ عليه أحد،
+       بينما السجلّ المرسَل عملٌ تمّ وينتظر توثيقه. الأول أعجل. */
+    if (pending.length) {
+      frag.append(
+        el("div", { class: "section-title",
+                    text: L("بلاغات من الميدان", "Field requests") + " · " + pending.length }),
+        el("div", { class: "field-list" }, ...pending.map(reportCard))
+      );
+    }
+    if (rows.length) {
+      frag.append(
+        el("div", { class: "section-title" + (pending.length ? " mt-6" : ""),
+                    text: L("سجلات بانتظار الاعتماد", "Records awaiting approval") + " · " + rows.length }),
+        el("div", { class: "field-list" }, ...rows.map(card))
+      );
+    }
+    host.replaceChildren(frag);
+  }
+
+  /* ─── البلاغ الميداني ──────────────────────────────────────────────────── */
+
+  function reportCard(r) {
+    return el("article", { class: "task-card p-" + (r.priority || "medium") },
+      el("div", { class: "task-top" },
+        el("div", { class: "grow" },
+          el("div", { class: "row wrap", style: "gap:6px;margin-bottom:6px" },
+            priorityBadge(r.priority),
+            r.specialty ? el("span", { class: "badge", text: t("sp_" + r.specialty) }) : null
+          ),
+          el("div", { class: "task-title", text: r.title })
+        )
+      ),
+      el("div", { class: "task-meta" },
+        el("span", {}, "#", String(r.seq ?? "")),
+        r.location ? el("span", { text: "◎ " + r.location }) : null,
+        el("span", { text: "◔ " + fmtStamp(r.created_at) }),
+        el("span", { text: "✎ " + (people[r.created_by] || "—") })
+      ),
+      r.description ? el("p", { class: "small muted mt-2", text: r.description }) : null,
+      el("div", { class: "task-actions" },
+        el("button", { class: "btn btn-ghost", onclick: () => decideReport(r, "reject"),
+                       text: L("رفض بسبب", "Reject with reason") }),
+        el("button", { class: "btn btn-primary", onclick: () => decideReport(r, "approve"),
+                       text: "✓ " + L("اعتماد وإسناد", "Approve and assign") })
+      )
+    );
+  }
+
+  /* الاعتماد قرار وإسناد في خطوة واحدة: بلاغ معتمد بلا فنيّ ولا نموذج
+     يبقى معلّقًا بصورة أخرى. والافتراض أن من رفعه يتولّاه — رآه بعينه. */
+  function decideReport(r, decision) {
+    const rej = decision === "reject";
+    const note = textarea({ rows: 3, placeholder: rej
+      ? L("لماذا لم يُعتمد؟ يقرؤه من رفعه", "Why not approved? The reporter reads this")
+      : L("ملاحظة اختيارية للفني", "Optional note to the technician") });
+
+    let tech = null, form = null, prio = null;
+    const body = el("div", { class: "stack" });
+
+    if (rej) {
+      body.append(el("p", { class: "small muted",
+        text: L("يُلغى البلاغ ويظهر لرافعه ومعه سببك.",
+                "The request is cancelled and shown to its reporter with your reason.") }));
+    } else {
+      tech = techSelect(techGroups, r.created_by);
+      form = formSelect(r.form_code || "WO-01");
+      prio = select(["critical", "high", "medium"].map((x) => ({ value: x, label: t("pr_" + x) })),
+                    { value: r.priority || "medium" });
+      body.append(
+        el("p", { class: "small muted",
+          text: L("يصير مهمة مسندة، وتبدأ مهلتها حين يفتحها الفني.",
+                  "It becomes an assigned task; its clock starts when the technician opens it.") }),
+        el("div", { class: "grid-fields" },
+          field(t("assignedTo"), tech),
+          field(t("priority"), prio)
+        ),
+        field(L("النموذج المطلوب", "Required form"), form,
+              { hint: L("الذي يفتحه الفني على المهمة", "What the technician opens on the task") })
+      );
+    }
+    body.append(field(L("ملاحظة", "Note"), note, { required: rej }));
+
+    modal({
+      title: (rej ? L("رفض بلاغ", "Reject request") : L("اعتماد بلاغ", "Approve request"))
+             + " — " + r.title,
+      body,
+      actions: [
+        { label: L("إلغاء", "Cancel") },
+        {
+          label: rej ? L("رفض", "Reject") : L("اعتماد وإسناد", "Approve and assign"),
+          kind: rej ? "btn-danger" : "btn-primary",
+          onClick: () => {
+            const txt = note.value.trim();
+            if (rej && !txt) {
+              toast(L("الرفض يتطلب سببًا", "A rejection needs a reason"), "warn");
+              note.focus();
+              return false;
+            }
+            runReport(r, decision, {
+              note: txt,
+              assign: rej ? null : (tech.value || null),
+              form: rej ? null : (form.value || null),
+              priority: rej ? null : (prio.value || null),
+            });
+          },
+        },
+      ],
+    });
+    (rej ? note : tech).focus();
+  }
+
+  async function runReport(r, decision, opts) {
+    try {
+      await tasks.review(r.id, decision, opts);
+      pending = pending.filter((x) => x.id !== r.id);
+      draw();
+      toast(decision === "approve"
+        ? L("اعتُمد وأُسند ✓", "Approved and assigned")
+        : L("رُفض البلاغ وأُبلغ رافعه", "Rejected — the reporter was told"), "ok");
+    } catch (err) {
+      toast(err.message || L("تعذّر تنفيذ القرار", "Could not apply the decision"), "danger", 6000);
+    }
   }
 
   function card(r) {

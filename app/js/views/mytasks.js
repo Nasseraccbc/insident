@@ -10,12 +10,18 @@ import { CLOSE_MIN } from "../forms/timer.js";
 import { t, lang, fmtStamp } from "../i18n.js";
 import {
   el, pageHead, empty, loading, liveTimer, taskStatusBadge, priorityBadge, toast,
+  modal, field, input, textarea, select,
 } from "../ui.js";
 
 const ORDER = { critical: 0, high: 1, medium: 2 };
+const PRIORITIES = ["critical", "high", "medium"];
+const L = (ar, en) => (lang === "ar" ? ar : en);
 
 export async function mytasksView(page, state) {
-  page.append(pageHead(t("navMyTasks"), `${t("welcome")} ${state.profile.full_name}`));
+  page.append(pageHead(t("navMyTasks"), `${t("welcome")} ${state.profile.full_name}`, [], [
+    el("button", { class: "btn btn-primary", onclick: () => openReport() },
+      "+ " + L("رفع بلاغ", "Raise a request")),
+  ]));
 
   const host = el("div", {});
   page.append(host);
@@ -28,9 +34,12 @@ export async function mytasksView(page, state) {
     stopAll();
     host.replaceChildren(loading());
 
-    let rows;
+    let rows, mine;
     try {
-      rows = await tasks.list({ assignedTo: state.profile.id });
+      [rows, mine] = await Promise.all([
+        tasks.list({ assignedTo: state.profile.id }),
+        tasks.list({ createdBy: state.profile.id }),
+      ]);
     } catch (err) {
       host.replaceChildren(empty(t("errNet"), err.message, "⚠"));
       return;
@@ -39,7 +48,12 @@ export async function mytasksView(page, state) {
     const active = rows.filter((r) => r.status !== "done" && r.status !== "cancelled");
     const done = rows.filter((r) => r.status === "done");
 
-    if (!rows.length) {
+    /* بلاغات رفعها هو: المعلّقة تنتظر المشرف، والمرفوضة تحمل سببها.
+       أمّا المعتمدة فتصير مهمة مسندة إليه وتظهر أعلاه — فلا تُكرَّر هنا. */
+    const raised = mine.filter((r) =>
+      r.status === "pending" || (r.status === "cancelled" && r.reviewed_at));
+
+    if (!rows.length && !raised.length) {
       host.replaceChildren(empty(t("noData"), t("noDataSub"), "◉"));
       return;
     }
@@ -53,6 +67,14 @@ export async function mytasksView(page, state) {
     for (const task of active) list.append(card(task));
 
     const frag = el("div", { class: "stack" }, list);
+
+    if (raised.length) {
+      frag.append(
+        el("div", { class: "section-title mt-6",
+                    text: L("بلاغات رفعتها", "Requests you raised") + " · " + raised.length }),
+        el("div", { class: "field-list" }, ...raised.map(raisedCard))
+      );
+    }
 
     if (done.length) {
       frag.append(
@@ -139,6 +161,95 @@ export async function mytasksView(page, state) {
       task.description ? el("p", { class: "small muted mt-2", text: task.description }) : null,
       actions.childElementCount ? actions : null
     );
+  }
+
+  /* بطاقة بلاغ مرفوع: لا مؤقّت ولا زرّ بدء — لم يُعتمد بعد فلا عمل عليه. */
+  function raisedCard(r) {
+    const waiting = r.status === "pending";
+    return el("div", { class: "task-card p-" + (r.priority || "medium") },
+      el("div", { class: "task-top" },
+        el("div", { class: "grow" },
+          el("div", { class: "row wrap", style: "gap:6px;margin-bottom:6px" },
+            priorityBadge(r.priority),
+            taskStatusBadge(waiting ? "pending" : "cancelled")
+          ),
+          el("div", { class: "task-title", text: r.title }),
+          el("div", { class: "task-meta" },
+            el("span", {}, "#", String(r.seq ?? "")),
+            r.location ? el("span", {}, "⌖ ", r.location) : null,
+            el("span", {}, "◷ ", fmtStamp(r.created_at))
+          )
+        )
+      ),
+      r.description ? el("p", { class: "small muted mt-2", text: r.description }) : null,
+      waiting
+        ? el("div", { class: "note small mt-2",
+            text: L("وصل إلى مشرف الموقع. لا يبدأ عليه وقت حتى يعتمده.",
+                    "Sent to the site supervisor. No clock runs until it is approved.") })
+        : el("div", { class: "note danger mt-2" },
+            el("b", { text: "✕ " + L("لم يُعتمد", "Not approved") }),
+            el("p", { class: "small mt-2", text: r.review_note || "—" }),
+            el("div", { class: "tiny dim", text: fmtStamp(r.reviewed_at) })
+          )
+    );
+  }
+
+  /* رفع البلاغ من الميدان. الفني يرى عطلًا لم يبلّغ عنه أحد، فلا ينتظر
+     مشرفًا يسجّله — لكن رفعه ليس إسنادًا: يقف عند المشرف حتى يقرّر. */
+  function openReport() {
+    const title = input({ required: true });
+    const desc = textarea({ rows: 3 });
+    const loc = input({});
+    const prio = select(PRIORITIES.map((p) => ({ value: p, label: t("pr_" + p) })),
+                        { value: "medium" });
+
+    modal({
+      title: L("رفع بلاغ من الميدان", "Raise a field request"),
+      body: el("div", { class: "stack" },
+        field(L("ما المشكلة؟", "What is the problem?"), title, { required: true }),
+        el("div", { class: "grid-fields" },
+          field(t("priority"), prio),
+          field(t("location"), loc, { hint: L("المبنى والدور", "Building and floor") })
+        ),
+        field(L("تفصيل ما رأيته", "Detail what you saw"), desc),
+        el("p", { class: "small muted",
+          text: L("يصل البلاغ إلى مشرف الموقع. إن اعتمده عاد إليك مهمةً وبدأت الإجراءات.",
+                  "The request goes to the site supervisor. If approved it returns to you as a task and work begins.") })
+      ),
+      actions: [
+        { label: t("cancel") },
+        {
+          label: L("رفع البلاغ", "Send request"), kind: "btn-primary",
+          onClick: () => {
+            if (!title.value.trim()) {
+              toast(L("اكتب ما المشكلة", "Say what the problem is"), "warn");
+              title.focus();
+              return false;
+            }
+            send({
+              title: title.value.trim(),
+              description: desc.value.trim() || null,
+              location: loc.value.trim() || null,
+              priority: prio.value,
+              specialty: state.profile.specialty || null,
+              created_by: state.profile.id,
+            });
+          },
+        },
+      ],
+    });
+    title.focus();
+  }
+
+  async function send(row) {
+    try {
+      await tasks.report(row);
+      toast(L("رُفع البلاغ — بانتظار اعتماد المشرف", "Request sent — awaiting supervisor approval"),
+            "ok", 4000);
+      load();
+    } catch (err) {
+      toast(err.message || t("errNet"), "danger", 6000);
+    }
   }
 
   async function change(task, patch) {

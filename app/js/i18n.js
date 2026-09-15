@@ -46,6 +46,7 @@ const AR = {
   pr_critical: "حرج", pr_high: "عالي", pr_medium: "متوسط",
 
   /* حالات المهام */
+  ts_pending: "بانتظار الاعتماد",
   ts_new: "جديدة", ts_assigned: "مسندة", ts_in_progress: "قيد التنفيذ",
   ts_done: "منجزة", ts_cancelled: "ملغاة",
 
@@ -100,6 +101,7 @@ const EN = {
 
   pr_critical: "Critical", pr_high: "High", pr_medium: "Medium",
 
+  ts_pending: "Awaiting approval",
   ts_new: "New", ts_assigned: "Assigned", ts_in_progress: "In progress",
   ts_done: "Done", ts_cancelled: "Cancelled",
 

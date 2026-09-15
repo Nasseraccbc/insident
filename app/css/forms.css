@@ -171,6 +171,7 @@
   background: var(--surface-2);
 }
 .note.danger { background: var(--danger-bg); border-color: var(--danger-br); color: var(--danger); }
+.note.warn   { background: var(--warn-bg);   border-color: var(--warn-br);   color: var(--warn); }
 
 /* ─── الشريط العلوي المشترك ────────────────────────────────────────────── */
 

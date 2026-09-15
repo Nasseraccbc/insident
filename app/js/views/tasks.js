@@ -6,32 +6,14 @@
    ============================================================================ */
 
 import { tasks, profiles } from "../db.js";
-import { FORMS, formName } from "../forms/renderer.js";
+import { formSelect, techSelect } from "../pickers.js";
 import { t, fmtStamp, fmtDur } from "../i18n.js";
 import {
   el, pageHead, empty, loading, table, modal, field, input, textarea, select,
   taskStatusBadge, priorityBadge, toast, stat,
 } from "../ui.js";
 
-const SPECIALTIES = ["electrical", "plumbing", "hvac", "hospitality", "cleaning"];
 const PRIORITIES = ["critical", "high", "medium"];
-
-/* عائلات النماذج بترتيب ما يُسنده المشرف فعلًا لا بترتيب المرفقات.
-   الرمز المكتوب يدويًا كان يُخطئ (WO1 · wo-01 · «أمر عمل») فيُفتح البلاغ
-   بلا نموذج، والقائمة تُغني عن الحفظ والإملاء. */
-const FORM_FAMILIES = [
-  { pre: "WO",  ar: "البلاغات وأوامر العمل" },
-  { pre: "INS", ar: "الفحص الميداني" },
-  { pre: "QA",  ar: "الجودة والتحقق" },
-  { pre: "HSE", ar: "السلامة والصحة المهنية" },
-  { pre: "RSK", ar: "المخاطر" },
-  { pre: "HS",  ar: "الضيافة" },
-  { pre: "MR",  ar: "قاعات الاجتماعات" },
-  { pre: "HR",  ar: "الموارد البشرية" },
-];
-
-const familyOf = (code) =>
-  FORM_FAMILIES.find((f) => code === f.pre || code.startsWith(f.pre + "-"));
 
 export async function tasksView(page, state) {
   let techGroups = {};
@@ -125,46 +107,13 @@ export async function tasksView(page, state) {
     return null;
   }
 
-  /** قائمة الفنيين مجمّعة بالتخصص عبر optgroup — بحث بصري سريع. */
-  function techSelect(value) {
-    const sel = el("select", { class: "select" });
-    sel.append(el("option", { value: "" }, "— " + t("unassigned") + " —"));
-    for (const sp of SPECIALTIES) {
-      const list = techGroups[sp];
-      if (!list?.length) continue;
-      const g = el("optgroup", { label: t("sp_" + sp) });
-      for (const p of list) {
-        g.append(el("option", { value: p.id, selected: p.id === value }, p.full_name));
-      }
-      sel.append(g);
-    }
-    return sel;
-  }
-
-  /** النماذج مجمّعة بعائلاتها في قائمة واحدة — بديل كتابة الرمز. */
-  function formSelect(value) {
-    const sel = el("select", { class: "select" });
-    sel.append(el("option", { value: "" }, "— بلا نموذج —"));
-    for (const fam of FORM_FAMILIES) {
-      const list = FORMS.filter((f) => familyOf(f.code) === fam);
-      if (!list.length) continue;
-      const g = el("optgroup", { label: fam.ar });
-      for (const f of list) {
-        g.append(el("option", { value: f.code, selected: f.code === value },
-          `${f.code} — ${formName(f)}`));
-      }
-      sel.append(g);
-    }
-    return sel;
-  }
-
   function openCreate() {
     const title = input({ required: true });
     const desc = textarea({ rows: 3 });
     const loc = input({});
     const prio = select(PRIORITIES.map((p) => ({ value: p, label: t("pr_" + p) })), { value: "medium" });
     const form = formSelect(null);
-    const tech = techSelect(null);
+    const tech = techSelect(techGroups, null);
 
     modal({
       title: t("add") + " — " + t("navTasks"),
@@ -203,7 +152,7 @@ export async function tasksView(page, state) {
   }
 
   function openAssign(row) {
-    const tech = techSelect(row.assigned_to);
+    const tech = techSelect(techGroups, row.assigned_to);
     modal({
       title: t("assignedTo") + " — " + row.title,
       body: el("div", { class: "stack" },

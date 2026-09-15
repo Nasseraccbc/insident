@@ -139,7 +139,7 @@ export function priorityBadge(p) {
 }
 
 export function taskStatusBadge(s) {
-  const kind = { new: "badge-info", assigned: "badge-brand",
+  const kind = { pending: "badge-warn", new: "badge-info", assigned: "badge-brand",
                  in_progress: "badge-warn", done: "badge-ok", cancelled: "" }[s] || "";
   return el("span", { class: "badge " + kind, text: t("ts_" + s) });
 }
