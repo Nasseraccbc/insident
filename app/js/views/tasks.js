@@ -6,6 +6,7 @@
    ============================================================================ */
 
 import { tasks, profiles } from "../db.js";
+import { FORMS, formName } from "../forms/renderer.js";
 import { t, fmtStamp, fmtDur } from "../i18n.js";
 import {
   el, pageHead, empty, loading, table, modal, field, input, textarea, select,
@@ -14,6 +15,23 @@ import {
 
 const SPECIALTIES = ["electrical", "plumbing", "hvac", "hospitality", "cleaning"];
 const PRIORITIES = ["critical", "high", "medium"];
+
+/* عائلات النماذج بترتيب ما يُسنده المشرف فعلًا لا بترتيب المرفقات.
+   الرمز المكتوب يدويًا كان يُخطئ (WO1 · wo-01 · «أمر عمل») فيُفتح البلاغ
+   بلا نموذج، والقائمة تُغني عن الحفظ والإملاء. */
+const FORM_FAMILIES = [
+  { pre: "WO",  ar: "البلاغات وأوامر العمل" },
+  { pre: "INS", ar: "الفحص الميداني" },
+  { pre: "QA",  ar: "الجودة والتحقق" },
+  { pre: "HSE", ar: "السلامة والصحة المهنية" },
+  { pre: "RSK", ar: "المخاطر" },
+  { pre: "HS",  ar: "الضيافة" },
+  { pre: "MR",  ar: "قاعات الاجتماعات" },
+  { pre: "HR",  ar: "الموارد البشرية" },
+];
+
+const familyOf = (code) =>
+  FORM_FAMILIES.find((f) => code === f.pre || code.startsWith(f.pre + "-"));
 
 export async function tasksView(page, state) {
   let techGroups = {};
@@ -123,12 +141,29 @@ export async function tasksView(page, state) {
     return sel;
   }
 
+  /** النماذج مجمّعة بعائلاتها في قائمة واحدة — بديل كتابة الرمز. */
+  function formSelect(value) {
+    const sel = el("select", { class: "select" });
+    sel.append(el("option", { value: "" }, "— بلا نموذج —"));
+    for (const fam of FORM_FAMILIES) {
+      const list = FORMS.filter((f) => familyOf(f.code) === fam);
+      if (!list.length) continue;
+      const g = el("optgroup", { label: fam.ar });
+      for (const f of list) {
+        g.append(el("option", { value: f.code, selected: f.code === value },
+          `${f.code} — ${formName(f)}`));
+      }
+      sel.append(g);
+    }
+    return sel;
+  }
+
   function openCreate() {
     const title = input({ required: true });
     const desc = textarea({ rows: 3 });
     const loc = input({});
     const prio = select(PRIORITIES.map((p) => ({ value: p, label: t("pr_" + p) })), { value: "medium" });
-    const form = input({ placeholder: "WO-01 · HSE-01 …" });
+    const form = formSelect(null);
     const tech = techSelect(null);
 
     modal({
@@ -141,7 +176,7 @@ export async function tasksView(page, state) {
         ),
         field("الوصف", desc),
         el("div", { class: "grid-fields" },
-          field(t("navForms"), form, { hint: "رمز النموذج المطلوب تعبئته" }),
+          field("النموذج المطلوب", form, { hint: "الذي يفتحه الفني على المهمة" }),
           field(t("assignedTo"), tech)
         )
       ),
@@ -156,7 +191,7 @@ export async function tasksView(page, state) {
               description: desc.value.trim() || null,
               location: loc.value.trim() || null,
               priority: prio.value,
-              form_code: form.value.trim() || null,
+              form_code: form.value || null,
               assigned_to: tech.value || null,
               status: tech.value ? "assigned" : "new",
               created_by: state.profile.id,
